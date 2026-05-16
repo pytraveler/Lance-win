@@ -1,5 +1,5 @@
 <div align="center">
-  <h1 align="center">Lance: Unified Multimodal Modeling by Multi-Task Synergy</h1>
+  <h2 align="center">Lance: Unified Multimodal Modeling by Multi-Task Synergy</h2>
   <p>
     <strong>
     <a href="https://scholar.google.com.hk/citations?user=FXxoQlsAAAAJ&hl=zh-CN&oi=ao" style="text-decoration: none; color: inherit;">Fengyi Fu</a><sup>*</sup>, 
@@ -554,6 +554,19 @@ Ready-to-run benchmark scripts are provided under `benchmarks/`:
 ## 📄 License
 
 Copyright 2025 Bytedance Ltd. and/or its affiliates.
+
+## Citation 💖
+
+If you find Lance useful for your project or research, welcome to 🌟 this repo and cite our work using the following BibTeX:
+
+```bibtex
+@misc{lance2026,
+  title  = {Lance: Unified Multimodal Modeling by Multi-Task Synergy},
+  author = {Fengyi Fu and Mengqi Huang and Shaojin Wu and Yunsheng Jiang and Yufei Huo and Jianzhu Guo and Hao Li and Yinghang Song and Fei Ding and Qian He and Zheren Fu and Zhendong Mao and Yongdong Zhang},
+  year   = {2026},
+  note   = {Manuscript}
+}
+```
 
 ## 📞 Contact
 
