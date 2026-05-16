@@ -1,7 +1,7 @@
 <div align="center">
-  <img src="assets/logo/lance-logo.webp" alt="Lance logo" width="320">
+  <img src="assets/logo/lance-logo.webp" alt="Lance logo" width="300">
 
-  <h2 align="center">Lance: Unified Multimodal Modeling by Multi-Task Synergy</h2>
+  <h1 align="center"><sup>Lance: Unified Multimodal Modeling by Multi-Task Synergy</sup></h1>
   <p>
     <strong>
     <a href="https://scholar.google.com.hk/citations?user=FXxoQlsAAAAJ&hl=zh-CN&oi=ao" style="text-decoration: none; color: inherit;">Fengyi Fu</a><sup>*</sup>, 
