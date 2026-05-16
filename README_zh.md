@@ -1,5 +1,5 @@
 <div align="center">
-  <h3 style="font-family: 'Georgia', 'Times New Roman', serif; font-style: italic; font-size: 1.5em; margin: 20px 0 15px 0;">Lance：通过原生多任务协同实现统一多模态模型</h3>
+  <h3 style="font-family: 'Georgia', 'Times New Roman', serif; font-style: italic; font-size: 1.5em; margin: 20px 0 15px 0;">Lance: Unified Multimodal Models via Native Multi-Task Synergy</h3>
   <p>
     <strong>
     <a href="https://scholar.google.com.hk/citations?user=FXxoQlsAAAAJ&hl=zh-CN&oi=ao" style="text-decoration: none; color: inherit;">Fengyi Fu</a><sup>*</sup>, 
@@ -19,7 +19,7 @@
     <br>
     <em>ByteDance</em>
     <br>
-    <sup>*</sup> 共同一作 &nbsp;&nbsp; <sup>✉</sup> 通讯作者 &nbsp;&nbsp; <sup>§</sup> 项目负责人
+    <sup>*</sup> 共同一作 &nbsp;&nbsp; <sup>✉</sup> 通讯作者 &nbsp;&nbsp; <sup>§</sup> Project lead
   </p>
   <p>
     <a href="https://lance-project.github.io/" style="text-decoration: none; margin: 0 8px;"><img src="https://img.shields.io/badge/Website-Lance-blue?style=flat-square&logo=github" alt="Website"></a>

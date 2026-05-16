@@ -19,7 +19,7 @@
     <br>
     <em>ByteDance</em>
     <br>
-    <sup>*</sup> Equal contribution &nbsp;&nbsp; <sup>✉</sup> Corresponding authors &nbsp;&nbsp; <sup>§</sup> Project Lead
+    <sup>*</sup> Equal contribution &nbsp;&nbsp; <sup>✉</sup> Corresponding authors &nbsp;&nbsp; <sup>§</sup> Project lead
   </p>
   <p>
     <a href="https://lance-project.github.io/" style="text-decoration: none; margin: 0 8px;"><img src="https://img.shields.io/badge/Website-Lance-blue?style=flat-square&logo=github" alt="Website"></a>
