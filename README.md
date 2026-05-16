@@ -48,71 +48,29 @@ Lance is a lightweight native unified multimodal model that supports **image and
 ### Text-to-Video
 
 <div align="center">
-  <table>
-    <tr>
-      <td align="center" width="25%">
-        <video src="assets/text-to-video/videos/text-to-video-demo-01.mp4" controls muted playsinline width="100%"></video>
-      </td>
-      <td align="center" width="25%">
-        <video src="assets/text-to-video/videos/text-to-video-demo-02.mp4" controls muted playsinline width="100%"></video>
-      </td>
-      <td align="center" width="25%">
-        <video src="assets/text-to-video/videos/text-to-video-demo-03.mp4" controls muted playsinline width="100%"></video>
-      </td>
-      <td align="center" width="25%">
-        <video src="assets/text-to-video/videos/text-to-video-demo-04.mp4" controls muted playsinline width="100%"></video>
-      </td>
-    </tr>
-    <tr>
-      <td align="center" width="25%">
-        <video src="assets/text-to-video/videos/text-to-video-demo-05.mp4" controls muted playsinline width="100%"></video>
-      </td>
-      <td align="center" width="25%">
-        <video src="assets/text-to-video/videos/text-to-video-demo-06.mp4" controls muted playsinline width="100%"></video>
-      </td>
-      <td align="center" width="25%">
-        <video src="assets/text-to-video/videos/text-to-video-demo-07.mp4" controls muted playsinline width="100%"></video>
-      </td>
-      <td align="center" width="25%">
-        <video src="assets/text-to-video/videos/text-to-video-demo-08.mp4" controls muted playsinline width="100%"></video>
-      </td>
-    </tr>
-  </table>
+  <video src="assets/text-to-video/videos/text-to-video-demo-01.mp4" controls muted playsinline width="24%"></video>
+  <video src="assets/text-to-video/videos/text-to-video-demo-02.mp4" controls muted playsinline width="24%"></video>
+  <video src="assets/text-to-video/videos/text-to-video-demo-03.mp4" controls muted playsinline width="24%"></video>
+  <video src="assets/text-to-video/videos/text-to-video-demo-04.mp4" controls muted playsinline width="24%"></video>
+  <br/>
+  <video src="assets/text-to-video/videos/text-to-video-demo-05.mp4" controls muted playsinline width="24%"></video>
+  <video src="assets/text-to-video/videos/text-to-video-demo-06.mp4" controls muted playsinline width="24%"></video>
+  <video src="assets/text-to-video/videos/text-to-video-demo-07.mp4" controls muted playsinline width="24%"></video>
+  <video src="assets/text-to-video/videos/text-to-video-demo-08.mp4" controls muted playsinline width="24%"></video>
 </div>
 
 ### Video Editing
 
 <div align="center">
-  <table>
-    <tr>
-      <td align="center" width="25%">
-        <video src="assets/video-editing/videos/video-editing-demo-01.mp4" controls muted playsinline width="100%"></video>
-      </td>
-      <td align="center" width="25%">
-        <video src="assets/video-editing/videos/video-editing-demo-02.mp4" controls muted playsinline width="100%"></video>
-      </td>
-      <td align="center" width="25%">
-        <video src="assets/video-editing/videos/video-editing-demo-03.mp4" controls muted playsinline width="100%"></video>
-      </td>
-      <td align="center" width="25%">
-        <video src="assets/video-editing/videos/video-editing-demo-04.mp4" controls muted playsinline width="100%"></video>
-      </td>
-    </tr>
-    <tr>
-      <td align="center" width="25%">
-        <video src="assets/video-editing/videos/video-editing-demo-05.mp4" controls muted playsinline width="100%"></video>
-      </td>
-      <td align="center" width="25%">
-        <video src="assets/video-editing/videos/video-editing-demo-06.mp4" controls muted playsinline width="100%"></video>
-      </td>
-      <td align="center" width="25%">
-        <video src="assets/video-editing/videos/video-editing-demo-07.mp4" controls muted playsinline width="100%"></video>
-      </td>
-      <td align="center" width="25%">
-        <video src="assets/video-editing/videos/video-editing-demo-08.mp4" controls muted playsinline width="100%"></video>
-      </td>
-    </tr>
-  </table>
+  <video src="assets/video-editing/videos/video-editing-demo-01.mp4" controls muted playsinline width="24%"></video>
+  <video src="assets/video-editing/videos/video-editing-demo-02.mp4" controls muted playsinline width="24%"></video>
+  <video src="assets/video-editing/videos/video-editing-demo-03.mp4" controls muted playsinline width="24%"></video>
+  <video src="assets/video-editing/videos/video-editing-demo-04.mp4" controls muted playsinline width="24%"></video>
+  <br/>
+  <video src="assets/video-editing/videos/video-editing-demo-05.mp4" controls muted playsinline width="24%"></video>
+  <video src="assets/video-editing/videos/video-editing-demo-06.mp4" controls muted playsinline width="24%"></video>
+  <video src="assets/video-editing/videos/video-editing-demo-07.mp4" controls muted playsinline width="24%"></video>
+  <video src="assets/video-editing/videos/video-editing-demo-08.mp4" controls muted playsinline width="24%"></video>
 </div>
 
 ### Multi-turn Consistency Editing
@@ -124,22 +82,10 @@ Lance is a lightweight native unified multimodal model that supports **image and
 ### Intelligent Video Generation
 
 <div align="center">
-  <table>
-    <tr>
-      <td align="center" width="25%">
-        <video src="assets/intelligent-video/videos/intelligent-video-demo-01.mp4" controls muted playsinline width="100%"></video>
-      </td>
-      <td align="center" width="25%">
-        <video src="assets/intelligent-video/videos/intelligent-video-demo-02.mp4" controls muted playsinline width="100%"></video>
-      </td>
-      <td align="center" width="25%">
-        <video src="assets/intelligent-video/videos/intelligent-video-demo-03.mp4" controls muted playsinline width="100%"></video>
-      </td>
-      <td align="center" width="25%">
-        <video src="assets/intelligent-video/videos/intelligent-video-demo-04.mp4" controls muted playsinline width="100%"></video>
-      </td>
-    </tr>
-  </table>
+  <video src="assets/intelligent-video/videos/intelligent-video-demo-01.mp4" controls muted playsinline width="24%"></video>
+  <video src="assets/intelligent-video/videos/intelligent-video-demo-02.mp4" controls muted playsinline width="24%"></video>
+  <video src="assets/intelligent-video/videos/intelligent-video-demo-03.mp4" controls muted playsinline width="24%"></video>
+  <video src="assets/intelligent-video/videos/intelligent-video-demo-04.mp4" controls muted playsinline width="24%"></video>
 </div>
 
 ### Video Understanding
