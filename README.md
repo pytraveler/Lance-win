@@ -290,7 +290,7 @@ python lance_gradio_t2v_v2t.py --gpus 0 --server-port 7860
   </thead>
   <tbody>
     <tr>
-      <td align="left" colspan="8"><i>Generation-only Models</i></td>
+      <td align="center" colspan="8"><i>Generation-only Models</i></td>
     </tr>
     <tr>
       <td align="left">SDXL</td><td align="center">3.5B</td><td align="center">83.27</td><td align="center">82.43</td><td align="center">80.91</td><td align="center">86.76</td><td align="center">80.41</td><td align="center">74.65</td>
@@ -308,7 +308,7 @@ python lance_gradio_t2v_v2t.py --gpus 0 --server-port 7860
       <td align="left">Qwen-Image</td><td align="center">20B</td><td align="center">91.32</td><td align="center">91.56</td><td align="center">92.02</td><td align="center">94.31</td><td align="center">92.73</td><td align="center">88.32</td>
     </tr>
     <tr>
-      <td align="left" colspan="8"><i>Unified Models</i></td>
+      <td align="center" colspan="8"><i>Unified Models</i></td>
     </tr>
     <tr>
       <td align="left">Janus-Pro-7B</td><td align="center">7B</td><td align="center">86.90</td><td align="center">88.90</td><td align="center">89.40</td><td align="center">89.32</td><td align="center">89.48</td><td align="center">84.19</td>
@@ -357,7 +357,7 @@ python lance_gradio_t2v_v2t.py --gpus 0 --server-port 7860
   </thead>
   <tbody>
     <tr>
-      <td align="left" colspan="9"><i>Generation-only Models</i></td>
+      <td align="center" colspan="9"><i>Generation-only Models</i></td>
     </tr>
     <tr>
       <td align="left">SDXL</td><td align="center">3.5B</td><td align="center">0.98</td><td align="center">0.74</td><td align="center">0.39</td><td align="center">0.85</td><td align="center">0.15</td><td align="center">0.23</td><td align="center">0.55</td>
@@ -375,7 +375,7 @@ python lance_gradio_t2v_v2t.py --gpus 0 --server-port 7860
       <td align="left">Qwen-Image</td><td align="center">20B</td><td align="center">0.99</td><td align="center">0.92</td><td align="center">0.89</td><td align="center">0.88</td><td align="center">0.76</td><td align="center">0.77</td><td align="center">0.87</td>
     </tr>
     <tr>
-      <td align="left" colspan="9"><i>Unified Models</i></td>
+      <td align="center" colspan="9"><i>Unified Models</i></td>
     </tr>
     <tr>
       <td align="left">Janus-Pro-7B</td><td align="center">7B</td><td align="center"><u>0.99</u></td><td align="center">0.89</td><td align="center">0.59</td><td align="center">0.90</td><td align="center">0.79</td><td align="center">0.66</td><td align="center">0.80</td>
@@ -432,7 +432,7 @@ python lance_gradio_t2v_v2t.py --gpus 0 --server-port 7860
   </thead>
   <tbody>
     <tr>
-      <td align="left" colspan="14"><i>Generation-only Models</i></td>
+      <td align="center" colspan="14"><i>Generation-only Models</i></td>
     </tr>
     <tr>
       <td align="left">Gemini 2.0</td><td align="center">-</td><td align="center">-</td><td align="center">-</td><td align="center">-</td><td align="center">-</td><td align="center">-</td><td align="center">-</td><td align="center">-</td><td align="center">-</td><td align="center">-</td><td align="center">-</td><td align="center">-</td><td align="center">6.32</td>
@@ -444,7 +444,7 @@ python lance_gradio_t2v_v2t.py --gpus 0 --server-port 7860
       <td align="left">Qwen-Image-Edit</td><td align="center">20B</td><td align="center">8.23</td><td align="center">8.30</td><td align="center">7.33</td><td align="center">8.05</td><td align="center">7.49</td><td align="center">6.74</td><td align="center">8.57</td><td align="center">8.09</td><td align="center">8.29</td><td align="center">8.48</td><td align="center">8.50</td><td align="center">8.01</td>
     </tr>
     <tr>
-      <td align="left" colspan="14"><i>Unified Models</i></td>
+      <td align="center" colspan="14"><i>Unified Models</i></td>
     </tr>
     <tr>
       <td align="left">Lumina-DiMOO</td><td align="center">8B</td><td align="center">3.43</td><td align="center">4.27</td><td align="center">3.08</td><td align="center">2.77</td><td align="center">4.74</td><td align="center">5.19</td><td align="center">4.44</td><td align="center">3.80</td><td align="center">4.38</td><td align="center">2.68</td><td align="center">4.20</td><td align="center">3.91</td>
