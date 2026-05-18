@@ -34,7 +34,7 @@
 
 ## 🌟 Highlights
 
-Lance is a lightweight native unified multimodal model that supports **image and video understanding, generation, and editing** within a single framework.
+**Lance** is a lightweight native unified multimodal model that supports **image and video understanding, generation, and editing** within a single framework.
 
 - **Efficient at 3B scale.** With only **3B active parameters**, Lance delivers strong performance across image generation, image editing, and video generation benchmarks.
 - **Trained from scratch.** Lance is built with a staged multi-task recipe and trained entirely from scratch within a **128-A100-GPU** budget.
@@ -47,7 +47,7 @@ Lance is a lightweight native unified multimodal model that supports **image and
 
 ### Text-to-Video
 
-<table>
+<table align="center">
   <tr>
     <td><a href="assets/text-to-video/videos/text-to-video-demo-01.mp4"><img src="assets/text-to-video/previews/text-to-video-demo-01.gif" width="100%"></a></td>
     <td><a href="assets/text-to-video/videos/text-to-video-demo-02.mp4"><img src="assets/text-to-video/previews/text-to-video-demo-02.gif" width="100%"></a></td>
@@ -64,7 +64,7 @@ Lance is a lightweight native unified multimodal model that supports **image and
 
 ### Video Editing
 
-<table>
+<table align="center">
   <tr>
     <td><a href="assets/video-editing/videos/video-editing-demo-01.mp4"><img src="assets/video-editing/previews/video-editing-demo-01.gif" width="100%"></a></td>
     <td><a href="assets/video-editing/videos/video-editing-demo-02.mp4"><img src="assets/video-editing/previews/video-editing-demo-02.gif" width="100%"></a></td>
@@ -89,7 +89,7 @@ Lance is a lightweight native unified multimodal model that supports **image and
 
 ### Intelligent Video Generation
 
-<table>
+<table align="center">
   <tr>
     <td><a href="assets/intelligent-video/videos/intelligent-video-demo-01.mp4"><img src="assets/intelligent-video/previews/intelligent-video-demo-01.gif" width="100%"></a></td>
     <td><a href="assets/intelligent-video/videos/intelligent-video-demo-02.mp4"><img src="assets/intelligent-video/previews/intelligent-video-demo-02.gif" width="100%"></a></td>
@@ -101,7 +101,7 @@ Lance is a lightweight native unified multimodal model that supports **image and
 ### Video Understanding
 
 <div align="center">
-  <table>
+  <table align="center">
     <tr>
       <td align="left" valign="top" width="33%">
         <a href="assets/video-understanding/videos/video-understanding-vqa-01.mp4">
@@ -166,7 +166,7 @@ Lance is a lightweight native unified multimodal model that supports **image and
 ### Image Understanding
 
 <div align="center">
-  <table>
+  <table align="center">
     <tr>
       <td align="left" valign="top" width="33%">
         <img src="assets/image-understanding/cases/image-understanding-case-01.png" alt="Pie chart reasoning case" width="100%">
@@ -218,7 +218,7 @@ bash ./setup_env.sh
 
 ### Download Model Weights
 
-Please download all the necessary model checkpoints of [Lance-3B (Huggingface Link)](https://huggingface.co/bytedance-research/Lance) and and place them in the `downloads/` directory.
+Please download all necessary model checkpoints from [Lance-3B on Hugging Face](https://huggingface.co/bytedance-research/Lance) and place them in the `downloads/` directory.
 
 ## 📚 Usage
 
@@ -266,7 +266,7 @@ You can configure the following hyperparameters at the top of the `inference_lan
 | `RESOLUTION` | `"video_480p"` | Base resolution preset (`image_768res` or `video_480p`). |
 
 ### Gradio
-```python
+```bash
 python lance_gradio_t2v_v2t.py --gpus 0 --server-port 7860
 ```
 
@@ -275,11 +275,11 @@ python lance_gradio_t2v_v2t.py --gpus 0 --server-port 7860
 #### DPG-Bench Evaluation
 
 <div align="center">
-<table>
+<table align="center">
   <thead>
     <tr>
       <th align="left">Models</th>
-      <th align="center"># Params.</th>
+      <th align="center">#&nbsp;Params.</th>
       <th align="center">Global</th>
       <th align="center">Entity</th>
       <th align="center">Attribute</th>
@@ -320,7 +320,7 @@ python lance_gradio_t2v_v2t.py --gpus 0 --server-port 7860
       <td align="left">Show-o2</td><td align="center">7B</td><td align="center">89.00</td><td align="center"><b>91.78</b></td><td align="center">89.96</td><td align="center">91.81</td><td align="center"><b>91.64</b></td><td align="center">86.14</td>
     </tr>
     <tr>
-      <td align="left">BAGEL</td><td align="center">7B</td><td align="center">88.94</td><td align="center">90.37</td><td align="center"><u>91.29</u></td><td align="center">90.82</td><td align="center">88.67</td><td align="center">85.07</td>
+      <td align="left">BAGEL<sup>†</sup></td><td align="center">7B</td><td align="center">88.94</td><td align="center">90.37</td><td align="center"><u>91.29</u></td><td align="center">90.82</td><td align="center">88.67</td><td align="center">85.07</td>
     </tr>
     <tr>
       <td align="left">InternVL-U</td><td align="center">1.7B</td><td align="center"><u>90.39</u></td><td align="center">90.78</td><td align="center">90.68</td><td align="center">90.29</td><td align="center">88.77</td><td align="center">85.18</td>
@@ -331,21 +331,23 @@ python lance_gradio_t2v_v2t.py --gpus 0 --server-port 7860
     <tr>
       <td align="left">TUNA-2</td><td align="center">7B</td><td align="center">89.50</td><td align="center">91.40</td><td align="center"><b>92.07</b></td><td align="center">91.91</td><td align="center">88.81</td><td align="center"><u>86.54</u></td>
     </tr>
-    <tr bgcolor="#f4e6ff">
+    <tr>
       <td align="left">🌟 <b>Lance (Ours)</b></td><td align="center"><b>3B</b></td><td align="center"><b>83.89</b></td><td align="center"><b>91.07</b></td><td align="center"><b>89.36</b></td><td align="center"><b>93.38</b></td><td align="center"><b>80.80</b></td><td align="center"><b>84.67</b></td>
     </tr>
   </tbody>
 </table>
 </div>
 
+<p align="center"><em><sup>†</sup> indicates methods that use LLM rewriters for prompt rewriting before generation.</em></p>
+
 #### GenEval Evaluation
 
 <div align="center">
-<table>
+<table align="center">
   <thead>
     <tr>
       <th align="left">Models</th>
-      <th align="center"># Params.</th>
+      <th align="center">#&nbsp;Params.</th>
       <th align="center">1-Obj.</th>
       <th align="center">2-Obj.</th>
       <th align="center">Count</th>
@@ -387,7 +389,7 @@ python lance_gradio_t2v_v2t.py --gpus 0 --server-port 7860
       <td align="left">Show-o2</td><td align="center">7B</td><td align="center"><b>1.00</b></td><td align="center">0.87</td><td align="center">0.58</td><td align="center">0.92</td><td align="center">0.52</td><td align="center">0.62</td><td align="center">0.76</td>
     </tr>
     <tr>
-      <td align="left">BAGEL</td><td align="center">7B</td><td align="center">0.98</td><td align="center">0.95</td><td align="center"><b>0.84</b></td><td align="center"><u>0.95</u></td><td align="center">0.78</td><td align="center">0.77</td><td align="center">0.88</td>
+      <td align="left">BAGEL<sup>†</sup></td><td align="center">7B</td><td align="center">0.98</td><td align="center">0.95</td><td align="center"><b>0.84</b></td><td align="center"><u>0.95</u></td><td align="center">0.78</td><td align="center">0.77</td><td align="center">0.88</td>
     </tr>
     <tr>
       <td align="left">Mogao</td><td align="center">7B</td><td align="center"><b>1.00</b></td><td align="center"><b>0.97</b></td><td align="center"><u>0.83</u></td><td align="center">0.93</td><td align="center">0.84</td><td align="center">0.80</td><td align="center"><u>0.89</u></td>
@@ -401,21 +403,23 @@ python lance_gradio_t2v_v2t.py --gpus 0 --server-port 7860
     <tr>
       <td align="left">TUNA-2</td><td align="center">7B</td><td align="center"><u>0.99</u></td><td align="center"><u>0.96</u></td><td align="center">0.80</td><td align="center">0.91</td><td align="center">0.84</td><td align="center">0.76</td><td align="center">0.87</td>
     </tr>
-    <tr bgcolor="#f4e6ff">
+    <tr>
       <td align="left">🌟 <b>Lance (Ours)</b></td><td align="center"><b>3B</b></td><td align="center"><b>1.00</b></td><td align="center"><b>0.94</b></td><td align="center"><b>0.84</b></td><td align="center"><b>0.97</b></td><td align="center"><b>0.87</b></td><td align="center"><b>0.81</b></td><td align="center"><b>0.90</b></td>
     </tr>
   </tbody>
 </table>
 </div>
 
+<p align="center"><em><sup>†</sup> indicates methods that use LLM rewriters for prompt rewriting before generation.</em></p>
+
 #### GEdit-Bench Evaluation
 
 <div align="center">
-<table>
+<table align="center">
   <thead>
     <tr>
       <th align="left">Models</th>
-      <th align="center"># Params.</th>
+      <th align="center">#&nbsp;Params.</th>
       <th align="center">BC</th>
       <th align="center">CA</th>
       <th align="center">MM</th>
@@ -461,7 +465,7 @@ python lance_gradio_t2v_v2t.py --gpus 0 --server-port 7860
     <tr>
       <td align="left">InternVL-U (w/ CoT)</td><td align="center">1.7B</td><td align="center">7.05</td><td align="center"><b>7.87</b></td><td align="center"><u>6.50</u></td><td align="center">6.99</td><td align="center">5.77</td><td align="center">6.10</td><td align="center">7.33</td><td align="center">7.16</td><td align="center">7.12</td><td align="center"><b>7.36</b></td><td align="center">6.46</td><td align="center"><u>6.88</u></td>
     </tr>
-    <tr bgcolor="#f4e6ff">
+    <tr>
       <td align="left">🌟 <b>Lance (Ours)</b></td><td align="center"><b>3B</b></td><td align="center"><b>7.73</b></td><td align="center"><u>7.74</u></td><td align="center"><b>7.28</b></td><td align="center"><b>7.83</b></td><td align="center"><b>7.50</b></td><td align="center"><b>7.03</b></td><td align="center"><u>7.64</u></td><td align="center"><b>7.85</b></td><td align="center"><b>7.71</b></td><td align="center">4.46</td><td align="center"><b>7.57</b></td><td align="center"><b>7.30</b></td>
     </tr>
   </tbody>
@@ -471,12 +475,12 @@ python lance_gradio_t2v_v2t.py --gpus 0 --server-port 7860
 #### VBench Evaluation (Video Generation)
 
 <div align="center">
-<table>
+<table align="center">
   <thead>
     <tr>
       <th align="left">Type</th>
       <th align="left">Model</th>
-      <th align="center"># Params.</th>
+      <th align="center">#&nbsp;Params.</th>
       <th align="center">Total Score ↑</th>
     </tr>
   </thead>
@@ -534,8 +538,8 @@ python lance_gradio_t2v_v2t.py --gpus 0 --server-port 7860
     <tr>
       <td align="left">TUNA</td><td align="center">1.5B</td><td align="center"><u>84.06</u></td>
     </tr>
-    <tr bgcolor="#f4e6ff">
-      <td align="left">🌟 <b>Lance (Ours)</b><sup>†</sup></td><td align="center"><b>3B</b></td><td align="center"><b>85.11</b></td>
+    <tr>
+      <td align="left">🌟 <b>Lance (Ours)</b></td><td align="center"><b>3B</b></td><td align="center"><b>85.11</b></td>
     </tr>
   </tbody>
 </table>
@@ -559,7 +563,7 @@ Copyright 2025 Bytedance Ltd. and/or its affiliates.
 
 ## 💖 Citation
 
-If you find Lance useful for your project or research, welcome to 🌟 this repo and cite our work using the following BibTeX:
+If you find **Lance** useful for your project or research, welcome to 🌟 this repo and cite our work using the following BibTeX:
 
 ```bibtex
 @misc{lance2026,
