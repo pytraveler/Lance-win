@@ -34,7 +34,7 @@
 
 ## 🌟 亮点
 
-**Lance** 是一个轻量级、原生统一的多模态模型，在单一框架下同时支持 **图像与视频的理解、生成和编辑**。
+**Lance** 是一个3B参数、原生统一的多模态模型，在单一框架下同时支持 **图像与视频的理解、生成和编辑**。
 
 - **3B 规模高效强大。** 仅使用 **3B active parameters**，Lance 即可在图像生成、图像编辑和视频生成等基准上取得强劲表现。
 - **从零训练。** Lance 采用分阶段多任务训练配方，在 **128 张 A100 GPU** 的预算内从零完成训练。
@@ -566,11 +566,14 @@ Copyright 2025 Bytedance Ltd. and/or its affiliates.
 如果 **Lance** 对您的项目或研究有帮助，欢迎 🌟 本仓库，并使用以下 BibTeX 引用我们的工作：
 
 ```bibtex
-@misc{lance2026,
-  title  = {Lance: Unified Multimodal Modeling by Multi-Task Synergy},
-  author = {Fengyi Fu and Mengqi Huang and Shaojin Wu and Yunsheng Jiang and Yufei Huo and Jianzhu Guo and Hao Li and Yinghang Song and Fei Ding and Qian He and Zheren Fu and Zhendong Mao and Yongdong Zhang},
-  year   = {2026},
-  note   = {Manuscript}
+@misc{fu2026lanceunifiedmultimodalmodeling,
+      title={Lance: Unified Multimodal Modeling by Multi-Task Synergy}, 
+      author={Fengyi Fu and Mengqi Huang and Shaojin Wu and Yunsheng Jiang and Yufei Huo and Hao Li and Yinghang Song and Fei Ding and Jianzhu Guo and Qian He and Zheren Fu and Zhendong Mao and Yongdong Zhang},
+      year={2026},
+      eprint={2605.18678},
+      archivePrefix={arXiv},
+      primaryClass={cs.CV},
+      url={https://arxiv.org/abs/2605.18678}, 
 }
 ```
 
