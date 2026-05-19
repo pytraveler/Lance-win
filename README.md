@@ -34,7 +34,7 @@
 
 ## 🌟 Highlights
 
-**Lance** is a lightweight native unified multimodal model that supports **image and video understanding, generation, and editing** within a single framework.
+**Lance** is a 3B native unified multimodal model that supports **image and video understanding, generation, and editing** within a single framework.
 
 - **Efficient at 3B scale.** With only **3B active parameters**, Lance delivers strong performance across image generation, image editing, and video generation benchmarks.
 - **Trained from scratch.** Lance is built with a staged multi-task recipe and trained entirely from scratch within a **128-A100-GPU** budget.
@@ -566,11 +566,14 @@ Copyright 2025 Bytedance Ltd. and/or its affiliates.
 If you find **Lance** useful for your project or research, welcome to 🌟 this repo and cite our work using the following BibTeX:
 
 ```bibtex
-@misc{lance2026,
-  title  = {Lance: Unified Multimodal Modeling by Multi-Task Synergy},
-  author = {Fengyi Fu and Mengqi Huang and Shaojin Wu and Yunsheng Jiang and Yufei Huo and Jianzhu Guo and Hao Li and Yinghang Song and Fei Ding and Qian He and Zheren Fu and Zhendong Mao and Yongdong Zhang},
-  year   = {2026},
-  note   = {Manuscript}
+@misc{fu2026lanceunifiedmultimodalmodeling,
+      title={Lance: Unified Multimodal Modeling by Multi-Task Synergy}, 
+      author={Fengyi Fu and Mengqi Huang and Shaojin Wu and Yunsheng Jiang and Yufei Huo and Hao Li and Yinghang Song and Fei Ding and Jianzhu Guo and Qian He and Zheren Fu and Zhendong Mao and Yongdong Zhang},
+      year={2026},
+      eprint={2605.18678},
+      archivePrefix={arXiv},
+      primaryClass={cs.CV},
+      url={https://arxiv.org/abs/2605.18678}, 
 }
 ```
 
