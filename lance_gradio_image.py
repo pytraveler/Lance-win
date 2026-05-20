@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import concurrent.futures
 import json
+import os
 import random
 import threading
 import time
@@ -12,6 +13,21 @@ from copy import deepcopy
 from datetime import datetime
 from pathlib import Path
 from typing import Optional
+
+# ---------------------------------------------------------------------------
+# Disable torch.compile (and therefore Triton JIT) on Windows.
+#
+# The x2t_image understanding path calls flex_attention which is wrapped in
+# torch.compile (qwen2_navit.py).  torch.compile → torch._inductor → Triton
+# requires a C compiler at runtime to build its CUDA driver — this is often
+# unavailable on Windows.  Disabling dynamo makes torch.compile a no-op so
+# flex_attention runs in eager mode (standard PyTorch ops, no Triton needed).
+#
+# Generation tasks (t2i / image_edit) are unaffected — they use
+# forward_inference → flash_attn / SDPA which never touch torch.compile.
+# ---------------------------------------------------------------------------
+if os.name == "nt":
+    os.environ["TORCHDYNAMO_DISABLE"] = "1"
 
 import gradio as gr
 import torch
@@ -41,36 +57,35 @@ from modeling.vit.qwen2_5_vl_vit import Qwen2_5_VisionTransformerPretrainedModel
 
 
 REPO_ROOT = Path(__file__).resolve().parent
-GRADIO_TMP_ROOT = REPO_ROOT / "tmps" / "gradio_t2v_v2t"
+GRADIO_TMP_ROOT = REPO_ROOT / "tmps" / "gradio_t2i_x2t_image"
 TMP_INPUT_DIR = GRADIO_TMP_ROOT / "inputs"
 RESULTS_ROOT = GRADIO_TMP_ROOT / "results"
 GLOBAL_RECORDS_FILE = GRADIO_TMP_ROOT / "generation_records.jsonl"
 RUN_RECORD_FILENAME = "generation_record.json"
 
-DEFAULT_MODEL_PATH = REPO_ROOT / "downloads" / "Lance_3B_Video"
+DEFAULT_MODEL_PATH = REPO_ROOT / "downloads" / "Lance_3B"
 DEFAULT_VIT_TYPE = "qwen_2_5_vl_original"
-DEFAULT_TASK = "t2v"
+DEFAULT_TASK = "t2i"
 DEFAULT_TIMESTEPS = 30
 DEFAULT_TIMESTEP_SHIFT = 3.5
 DEFAULT_CFG_TEXT_SCALE = 4.0
-DEFAULT_RESOLUTION = "video_480p"
+DEFAULT_RESOLUTION = "image_768res"
 DEFAULT_BASIC_SEED = -1
-DEFAULT_HEIGHT = 480
-DEFAULT_WIDTH = 848
-DEFAULT_NUM_FRAMES = 50
+DEFAULT_HEIGHT = 768
+DEFAULT_WIDTH = 768
+DEFAULT_NUM_FRAMES = 1
 DEFAULT_GPUS = "0"
 DEFAULT_QUEUE_SIZE = 32
 USE_KVCACHE = True
 TEXT_TEMPLATE = True
 RECORD_WRITE_LOCK = threading.Lock()
 
-TASK_T2V = "t2v"
-TASK_V2T = "v2t"
-TASK_X2T = "x2t"
-TASK_X2T_VIDEO = "x2t_video"
-TASK_CHOICES = [TASK_T2V, TASK_V2T]
-VIDEO_RESOLUTION_CHOICES = ["video_192p", "video_360p", "video_480p"]
-V2T_SYSTEM_PROMPT = "Watch the video carefully and answer the question."
+TASK_T2I = "t2i"
+TASK_IMAGE_EDIT = "image_edit"
+TASK_X2T_IMAGE = "x2t_image"
+TASK_CHOICES = [TASK_T2I, TASK_IMAGE_EDIT, TASK_X2T_IMAGE]
+IMAGE_RESOLUTION_CHOICES = ["image_768res"]
+X2T_IMAGE_SYSTEM_PROMPT = "Look at the image carefully and answer the question."
 
 
 def ensure_dirs() -> None:
@@ -79,16 +94,6 @@ def ensure_dirs() -> None:
 
 
 def convert_weights_to_fp8(model: torch.nn.Module, device: int) -> None:
-    """Convert all ``nn.Linear`` weights to *fp8_e4m3fn* to halve VRAM usage.
-
-    Weight tensors are stored on-GPU in ``torch.float8_e4m3fn`` (1 byte/value
-    instead of 2 bytes/value for bfloat16).  Forward hooks handle on-the-fly
-    dequantisation back to the original dtype so that the rest of the inference
-    pipeline (autocast, F.linear, etc.) continues to work unchanged.
-
-    The peak overhead is one layer's worth of bf16 weights at a time (the
-    dequantised tensor is released immediately after each layer's forward pass).
-    """
     import torch.nn as nn
 
     mem_before = torch.cuda.memory_allocated(device) / (1024 ** 3)
@@ -102,12 +107,9 @@ def convert_weights_to_fp8(model: torch.nn.Module, device: int) -> None:
         if original_dtype == torch.float8_e4m3fn:
             continue
 
-        # Convert weight data to fp8.
         module.weight.data = module.weight.data.to(torch.float8_e4m3fn)
         module.weight.requires_grad_(False)
 
-        # Register forward hooks that dequantise the weight to bf16 just before
-        # the layer's forward pass and restore the fp8 storage right after.
         def _make_hooks(orig_dtype):
             def _pre_forward(mod, args):
                 mod._fp8_weight_storage = mod.weight.data
@@ -154,30 +156,39 @@ def normalize_seed(seed: int) -> int:
 
 
 def normalize_task(task: str) -> str:
-    task = (task or DEFAULT_TASK).strip().lower()
-    if task == TASK_V2T:
-        return TASK_X2T_VIDEO
-    if task == TASK_X2T:
-        return TASK_X2T_VIDEO
-    if task not in {TASK_T2V, TASK_X2T_VIDEO}:
+    task = (task or TASK_T2I).strip().lower()
+    if task not in {TASK_T2I, TASK_IMAGE_EDIT, TASK_X2T_IMAGE}:
         raise ValueError(f"Unsupported task type: {task}")
     return task
 
 
-def create_request_json(task: str, prompt: str, input_video: Optional[str], question: str) -> Path:
+def create_request_json(task: str, prompt: str, input_image: Optional[str] = None, question: str = "") -> Path:
     ensure_dirs()
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
     prompt_file = TMP_INPUT_DIR / f"{task}_{timestamp}.json"
 
-    if task == TASK_T2V:
-        payload = {"000000.mp4": prompt}
-    elif task == TASK_X2T_VIDEO:
-        if not input_video:
-            raise ValueError("The v2t task requires an input video.")
+    if task == TASK_T2I:
+        payload = {"000000.png": prompt}
+    elif task == TASK_IMAGE_EDIT:
+        if not input_image:
+            raise ValueError("The image_edit task requires an input image.")
         payload = {
             "000000": {
-                "interleave_array": [input_video, [V2T_SYSTEM_PROMPT, question, ""]],
-                "element_dtype_array": ["video", "text"],
+                "interleave_array": [prompt, input_image, input_image],
+                "element_dtype_array": ["text", "image", "image"],
+                "istarget_in_interleave": [0, 0, 1],
+            }
+        }
+    elif task == TASK_X2T_IMAGE:
+        if not input_image:
+            raise ValueError("The x2t_image task requires an input image.")
+        payload = {
+            "000000": {
+                "interleave_array": [
+                    input_image,
+                    [X2T_IMAGE_SYSTEM_PROMPT, question or prompt, ""],
+                ],
+                "element_dtype_array": ["image", "text"],
                 "istarget_in_interleave": [0, 1],
             }
         }
@@ -195,9 +206,13 @@ def build_save_dir(task: str) -> Path:
     return RESULTS_ROOT / f"{task}_{timestamp}_{int(time.time() * 1000) % 1000:03d}"
 
 
-def find_generated_video(save_dir: Path) -> Optional[Path]:
-    videos = sorted(save_dir.glob("*.mp4"), key=lambda p: p.stat().st_mtime, reverse=True)
-    return videos[0] if videos else None
+def find_generated_image(save_dir: Path) -> Optional[Path]:
+    images = sorted(
+        list(save_dir.glob("*.png")) + list(save_dir.glob("*.jpg")),
+        key=lambda p: p.stat().st_mtime,
+        reverse=True,
+    )
+    return images[0] if images else None
 
 
 def extract_text_result(save_dir: Path) -> str:
@@ -212,14 +227,14 @@ def extract_text_result(save_dir: Path) -> str:
     return first_value if isinstance(first_value, str) else json.dumps(first_value, ensure_ascii=False)
 
 
-class LanceT2VV2TPipeline:
+class LanceT2IX2TImagePipeline:
     def __init__(self, device_id: int, use_fp8: bool = False) -> None:
         self._init_lock = threading.Lock()
         self._generate_lock = threading.Lock()
         self.initialized = False
         self.device = device_id
         self.use_fp8 = use_fp8
-        self.logger = get_logger(f"lance_t2v_v2t_gpu{device_id}")
+        self.logger = get_logger(f"lance_t2i_x2t_image_gpu{device_id}")
 
         self.model: Optional[Lance] = None
         self.vae_model: Optional[WanVideoVAE] = None
@@ -279,7 +294,7 @@ class LanceT2VV2TPipeline:
 
             ensure_dirs()
             if not torch.cuda.is_available():
-                raise RuntimeError("CUDA is unavailable. Lance T2V/V2T Gradio requires a GPU environment.")
+                raise RuntimeError("CUDA is unavailable. Lance T2I/X2T-Image Gradio requires a GPU environment.")
             if self.device >= torch.cuda.device_count():
                 raise RuntimeError(
                     f"GPU {self.device} is unavailable. Detected {torch.cuda.device_count()} GPU(s)."
@@ -431,7 +446,7 @@ class LanceT2VV2TPipeline:
             self.new_token_ids = new_token_ids
             self.image_token_id = image_token_id
             self.initialized = True
-            print(f"[startup][gpu:{self.device}] Lance T2V/V2T Gradio model loaded and ready for reuse.", flush=True)
+            print(f"[startup][gpu:{self.device}] Lance T2I/X2T-Image Gradio model loaded and ready for reuse.", flush=True)
 
     def _build_request_batch(
         self,
@@ -491,11 +506,10 @@ class LanceT2VV2TPipeline:
         self,
         task: str,
         prompt: str,
-        input_video: Optional[str],
+        input_image: Optional[str],
         question: str,
         height: int,
         width: int,
-        num_frames: int,
         seed: int,
         resolution: str,
         validation_num_timesteps: int,
@@ -505,19 +519,19 @@ class LanceT2VV2TPipeline:
         self.initialize()
         internal_task = normalize_task(task)
         prompt = (prompt or "").strip()
+        input_image = str(input_image).strip() if input_image else ""
         question = (question or "").strip()
-        input_video = str(input_video).strip() if input_video else ""
 
-        if internal_task == TASK_T2V and not prompt:
+        if internal_task == TASK_T2I and not prompt:
             return None, "", "Please enter a prompt.", ""
-        if internal_task == TASK_X2T_VIDEO and not question:
+        if internal_task == TASK_IMAGE_EDIT and not prompt:
+            return None, "", "Please enter an editing instruction.", ""
+        if internal_task == TASK_IMAGE_EDIT and not input_image:
+            return None, "", "Please upload an input image.", ""
+        if internal_task == TASK_X2T_IMAGE and not question:
             return None, "", "Please enter a question.", ""
-        if internal_task == TASK_X2T_VIDEO and not input_video:
-            return None, "", "Please upload an input video.", ""
-        if height <= 0 or width <= 0:
-            return None, "", "Height and width must be greater than 0.", ""
-        if num_frames <= 0:
-            return None, "", "The number of frames must be greater than 0.", ""
+        if internal_task == TASK_X2T_IMAGE and not input_image:
+            return None, "", "Please upload an input image.", ""
 
         assert self.model is not None
         assert self.tokenizer is not None
@@ -533,8 +547,8 @@ class LanceT2VV2TPipeline:
             prompt_file = create_request_json(
                 task=internal_task,
                 prompt=prompt,
-                input_video=input_video,
-                question=question,
+                input_image=input_image if internal_task in {TASK_IMAGE_EDIT, TASK_X2T_IMAGE} else None,
+                question=question if internal_task == TASK_X2T_IMAGE else "",
             )
             save_dir = build_save_dir(internal_task)
             save_dir.mkdir(parents=True, exist_ok=True)
@@ -553,7 +567,7 @@ class LanceT2VV2TPipeline:
             request_inference_args.validation_noise_seed = actual_seed
             request_inference_args.video_height = int(height)
             request_inference_args.video_width = int(width)
-            request_inference_args.num_frames = int(num_frames)
+            request_inference_args.num_frames = DEFAULT_NUM_FRAMES
             request_inference_args.resolution = resolution
             request_inference_args.save_path_gen = str(save_dir)
             request_inference_args.task = internal_task
@@ -562,9 +576,9 @@ class LanceT2VV2TPipeline:
 
             try:
                 print(
-                    "[lance_gradio_t2v_v2t] Start generation "
+                    "[lance_gradio_t2i_x2t_image] Start generation "
                     f"| task={internal_task} | gpu={self.device} | seed={actual_seed} | "
-                    f"size={height}x{width} | frames={num_frames} | resolution={resolution}",
+                    f"size={height}x{width} | resolution={resolution}",
                     flush=True,
                 )
                 val_data_cpu = self._build_request_batch(
@@ -594,8 +608,9 @@ class LanceT2VV2TPipeline:
                 save_prompt_results(request_inference_args.prompt_data_dict, request_inference_args.save_path_gen, self.logger)
                 clean_memory()
 
-                video_path = find_generated_video(save_dir) if internal_task == TASK_T2V else None
-                text_result = extract_text_result(save_dir) if internal_task == TASK_X2T_VIDEO else ""
+                is_gen_task = internal_task in {TASK_T2I, TASK_IMAGE_EDIT}
+                image_path = find_generated_image(save_dir) if is_gen_task else None
+                text_result = extract_text_result(save_dir) if internal_task == TASK_X2T_IMAGE else ""
                 record = {
                     "request_started_at": request_started_at,
                     "request_finished_at": datetime.now().isoformat(timespec="seconds"),
@@ -604,11 +619,10 @@ class LanceT2VV2TPipeline:
                     "gpu": self.device,
                     "prompt": prompt,
                     "question": question,
-                    "input_video": input_video,
+                    "input_image": input_image,
                     "seed": actual_seed,
                     "height": int(height),
                     "width": int(width),
-                    "num_frames": int(num_frames),
                     "resolution": resolution,
                     "validation_num_timesteps": int(validation_num_timesteps),
                     "validation_timestep_shift": float(validation_timestep_shift),
@@ -616,24 +630,23 @@ class LanceT2VV2TPipeline:
                     "elapsed_seconds": round(elapsed, 3),
                     "prompt_file": str(prompt_file),
                     "output_dir": str(save_dir),
-                    "video_path": str(video_path) if video_path is not None else "",
+                    "image_path": str(image_path) if image_path is not None else "",
                     "text_result": text_result,
                 }
-                if internal_task == TASK_T2V and video_path is None:
-                    record["status"] = "completed_without_video"
-                if internal_task == TASK_X2T_VIDEO and not text_result:
+                if is_gen_task and image_path is None:
+                    record["status"] = "completed_without_image"
+                if internal_task == TASK_X2T_IMAGE and not text_result:
                     record["status"] = "completed_without_text"
                 save_generation_record(record, save_dir)
 
                 logs = "\n".join(
                     [
-                        "[lance_gradio_t2v_v2t] Generation finished in-process.",
+                        "[lance_gradio_t2i_x2t_image] Generation finished in-process.",
                         f"task={internal_task}",
                         f"gpu={self.device}",
                         f"seed={actual_seed}",
                         f"height={height}",
                         f"width={width}",
-                        f"num_frames={num_frames}",
                         f"resolution={resolution}",
                         f"validation_num_timesteps={validation_num_timesteps}",
                         f"validation_timestep_shift={validation_timestep_shift}",
@@ -643,10 +656,10 @@ class LanceT2VV2TPipeline:
                     ]
                 )
 
-                if internal_task == TASK_T2V:
-                    if video_path is None:
+                if is_gen_task:
+                    if image_path is None:
                         status = (
-                            "Inference completed, but no generated video was found.\n\n"
+                            "Inference completed, but no generated image was found.\n\n"
                             f"- Task: `{internal_task}`\n"
                             f"- GPU: `{self.device}`\n"
                             f"- Actual seed: `{actual_seed}`\n"
@@ -659,13 +672,14 @@ class LanceT2VV2TPipeline:
                         f"- GPU: `{self.device}`\n"
                         f"- Actual seed: `{actual_seed}`\n"
                         f"- Output directory: `{save_dir}`\n"
-                        f"- Result file: `{video_path}`"
+                        f"- Result file: `{image_path}`"
                     )
-                    return str(video_path), "", status, logs
+                    return str(image_path), "", status, logs
 
+                # x2t_image: understanding task
                 status = (
                     "Understanding completed.\n\n"
-                    f"- Task: `{task}`\n"
+                    f"- Task: `{internal_task}`\n"
                     f"- GPU: `{self.device}`\n"
                     f"- Actual seed: `{actual_seed}`\n"
                     f"- Output directory: `{save_dir}`"
@@ -682,18 +696,17 @@ class LanceT2VV2TPipeline:
                     "gpu": self.device,
                     "prompt": prompt,
                     "question": question,
-                    "input_video": input_video,
+                    "input_image": input_image,
                     "seed": actual_seed,
                     "height": int(height),
                     "width": int(width),
-                    "num_frames": int(num_frames),
                     "resolution": resolution,
                     "validation_num_timesteps": int(validation_num_timesteps),
                     "validation_timestep_shift": float(validation_timestep_shift),
                     "cfg_text_scale": float(cfg_text_scale),
                     "prompt_file": str(prompt_file),
                     "output_dir": str(save_dir),
-                    "video_path": "",
+                    "image_path": "",
                     "text_result": "",
                     "error": error_trace,
                 }
@@ -714,7 +727,7 @@ class PipelinePool:
             raise ValueError("At least one GPU must be configured.")
         self.gpu_ids = gpu_ids
         self.use_fp8 = use_fp8
-        self.pipelines = [LanceT2VV2TPipeline(device_id=gpu_id, use_fp8=use_fp8) for gpu_id in gpu_ids]
+        self.pipelines = [LanceT2IX2TImagePipeline(device_id=gpu_id, use_fp8=use_fp8) for gpu_id in gpu_ids]
         self._available = deque(self.pipelines)
         self._condition = threading.Condition()
 
@@ -744,13 +757,13 @@ class PipelinePool:
             raise RuntimeError(f"Preload failed on {len(exceptions)} GPU(s). Please check the terminal logs.") from exceptions[0]
         print(f"[startup] GPU preload finished. Ready to handle {self.size} concurrent request(s).", flush=True)
 
-    def acquire(self) -> LanceT2VV2TPipeline:
+    def acquire(self) -> LanceT2IX2TImagePipeline:
         with self._condition:
             while not self._available:
                 self._condition.wait()
             return self._available.popleft()
 
-    def release(self, pipeline: LanceT2VV2TPipeline) -> None:
+    def release(self, pipeline: LanceT2IX2TImagePipeline) -> None:
         with self._condition:
             self._available.append(pipeline)
             self._condition.notify()
@@ -759,11 +772,10 @@ class PipelinePool:
         self,
         task: str,
         prompt: str,
-        input_video: Optional[str],
+        input_image: Optional[str],
         question: str,
         height: int,
         width: int,
-        num_frames: int,
         seed: int,
         resolution: str,
         validation_num_timesteps: int,
@@ -775,11 +787,10 @@ class PipelinePool:
             return pipeline.generate(
                 task=task,
                 prompt=prompt,
-                input_video=input_video,
+                input_image=input_image,
                 question=question,
                 height=height,
                 width=width,
-                num_frames=num_frames,
                 seed=seed,
                 resolution=resolution,
                 validation_num_timesteps=validation_num_timesteps,
@@ -797,11 +808,10 @@ QUEUE_MAX_SIZE = DEFAULT_QUEUE_SIZE
 def run_task(
     task: str,
     prompt: str,
-    input_video: Optional[str],
+    input_image: Optional[str],
     question: str,
     height: int,
     width: int,
-    num_frames: int,
     seed: int,
     resolution: str,
     validation_num_timesteps: int,
@@ -812,11 +822,10 @@ def run_task(
     return PIPELINE_POOL.generate(
         task=task,
         prompt=prompt,
-        input_video=input_video,
+        input_image=input_image,
         question=question,
         height=height,
         width=width,
-        num_frames=num_frames,
         seed=seed,
         resolution=resolution,
         validation_num_timesteps=validation_num_timesteps,
@@ -838,36 +847,37 @@ def build_status_markdown() -> str:
 
 
 def update_task_ui(task: str):
-    task = (task or DEFAULT_TASK).strip().lower()
-    if task == TASK_T2V:
+    task = (task or TASK_T2I).strip().lower()
+    if task == TASK_T2I:
         return (
-            gr.update(label="Prompt", placeholder="Describe the video you want to generate...", visible=True),
-            gr.update(label="Input Video", visible=False, value=None),
-            gr.update(label="Question", placeholder="Please enter a question", visible=False, value=""),
-            gr.update(visible=True),
-            gr.update(visible=True),
-            gr.update(visible=True),
+            gr.update(label="Prompt", placeholder="Describe the image you want to generate...", visible=True),
+            gr.update(visible=False, value=None),
+            gr.update(visible=False, value=""),
             gr.update(value=""),
         )
+    if task == TASK_IMAGE_EDIT:
+        return (
+            gr.update(label="Editing Instruction", placeholder="Describe how you want to edit the image...", visible=True),
+            gr.update(label="Input Image (source to edit)", visible=True),
+            gr.update(visible=False, value=""),
+            gr.update(value=""),
+        )
+    # x2t_image
     return (
         gr.update(label="Prompt", placeholder="This task does not require a prompt", visible=False, value=""),
-        gr.update(label="Input Video", visible=True),
-        gr.update(label="Question", placeholder="Describe the question you want the model to answer", visible=True),
-        gr.update(visible=False),
-        gr.update(visible=False),
-        gr.update(visible=False),
+        gr.update(label="Input Image", visible=True),
+        gr.update(label="Question", placeholder="Ask a question about the image...", visible=True),
         gr.update(value=""),
     )
 
 
 def build_demo() -> gr.Blocks:
-    with gr.Blocks(title="Lance T2V/V2T Gradio") as demo:
+    with gr.Blocks(title="Lance T2I / Image Edit / Image Understanding Gradio") as demo:
         gr.Markdown(
             """
-            # Lance T2V/V2T
+            # Lance T2I / Image Edit / Image Understanding
 
-            Supports two tasks: `t2v` and `v2t`.
-            `v2t` is mapped to the internal `x2t_video` task in the backend.
+            Supports three tasks: `t2i` (Text-to-Image), `image_edit` (Image Editing), and `x2t_image` (Image Understanding).
             The service preloads one model per GPU at startup, and requests are automatically dispatched to idle GPUs.
             """
         )
@@ -875,17 +885,17 @@ def build_demo() -> gr.Blocks:
 
         with gr.Row():
             with gr.Column(scale=1):
-                task = gr.Dropdown(label="Task", choices=TASK_CHOICES, value=DEFAULT_TASK)
+                task = gr.Dropdown(label="Task", choices=TASK_CHOICES, value=TASK_T2I)
                 prompt = gr.Textbox(
                     label="Prompt",
                     lines=6,
-                    placeholder="Describe the video you want to generate...",
+                    placeholder="Describe the image you want to generate...",
                 )
-                input_video = gr.Video(label="Input Video", visible=False)
+                input_image = gr.Image(label="Input Image (source to edit)", type="filepath", visible=False)
                 question = gr.Textbox(
                     label="Question",
                     lines=3,
-                    placeholder="Describe the question you want the model to answer",
+                    placeholder="Ask a question about the image...",
                     visible=False,
                 )
                 with gr.Row():
@@ -903,13 +913,6 @@ def build_demo() -> gr.Blocks:
                         value=DEFAULT_WIDTH,
                         label="Width",
                     )
-                num_frames = gr.Slider(
-                    minimum=1,
-                    maximum=121,
-                    step=1,
-                    value=DEFAULT_NUM_FRAMES,
-                    label="Output Frames",
-                )
                 seed = gr.Number(
                     label="Seed",
                     value=DEFAULT_BASIC_SEED,
@@ -918,7 +921,7 @@ def build_demo() -> gr.Blocks:
                 )
                 resolution = gr.Dropdown(
                     label="RESOLUTION",
-                    choices=VIDEO_RESOLUTION_CHOICES,
+                    choices=IMAGE_RESOLUTION_CHOICES,
                     value=DEFAULT_RESOLUTION,
                 )
 
@@ -942,7 +945,7 @@ def build_demo() -> gr.Blocks:
                 run_button = gr.Button("Run", variant="primary")
 
             with gr.Column(scale=1):
-                output_video = gr.Video(label="Video Result")
+                output_image = gr.Image(label="Image Result", type="filepath")
                 output_text = gr.Textbox(label="Text Result", lines=8)
                 status = gr.Markdown("Waiting to run.")
                 logs = gr.Textbox(label="Run Logs", lines=22, max_lines=30)
@@ -950,7 +953,7 @@ def build_demo() -> gr.Blocks:
         task.change(
             fn=update_task_ui,
             inputs=[task],
-            outputs=[prompt, input_video, question, height, width, num_frames, output_text],
+            outputs=[prompt, input_image, question, output_text],
         )
 
         run_button.click(
@@ -958,27 +961,26 @@ def build_demo() -> gr.Blocks:
             inputs=[
                 task,
                 prompt,
-                input_video,
+                input_image,
                 question,
                 height,
                 width,
-                num_frames,
                 seed,
                 resolution,
                 validation_num_timesteps,
                 validation_timestep_shift,
                 cfg_text_scale,
             ],
-            outputs=[output_video, output_text, status, logs],
+            outputs=[output_image, output_text, status, logs],
         )
 
     return demo
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Lance T2V/V2T Gradio")
+    parser = argparse.ArgumentParser(description="Lance T2I / Image Edit / Image Understanding Gradio")
     parser.add_argument("--server-name", default="0.0.0.0")
-    parser.add_argument("--server-port", type=int, default=7860)
+    parser.add_argument("--server-port", type=int, default=7861)
     parser.add_argument("--share", action="store_true")
     parser.add_argument(
         "--gpus",

@@ -3,7 +3,7 @@ chcp 65001 >nul
 setlocal
 
 set PYTHON=.venv\Scripts\python.exe
-set SCRIPT=lance_gradio_t2v_v2t.py
+set SCRIPT=lance_gradio_image.py
 
 echo.
 echo  Select launch mode:

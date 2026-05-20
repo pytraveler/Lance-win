@@ -128,10 +128,15 @@ class Qwen2_5_VLVisionAttention(nn.Module):
 def apply_rotary_pos_emb_flashatt(
     q: torch.Tensor, k: torch.Tensor, cos: torch.Tensor, sin: torch.Tensor
 ) -> Tuple[torch.Tensor, torch.Tensor]:
-    cos = cos.chunk(2, dim=-1)[0].contiguous()
-    sin = sin.chunk(2, dim=-1)[0].contiguous()
-    q_embed = apply_rotary_emb(q.float(), cos, sin).type_as(q)
-    k_embed = apply_rotary_emb(k.float(), cos, sin).type_as(k)
+    """Pure-PyTorch RoPE – avoids flash_attn's Triton kernel which needs a C compiler."""
+    orig_q_dtype = q.dtype
+    orig_k_dtype = k.dtype
+    q, k = q.float(), k.float()
+    cos, sin = cos.unsqueeze(-2), sin.unsqueeze(-2)
+    q_embed = (q * cos) + (rotate_half(q) * sin)
+    k_embed = (k * cos) + (rotate_half(k) * sin)
+    q_embed = q_embed.to(orig_q_dtype)
+    k_embed = k_embed.to(orig_k_dtype)
     return q_embed, k_embed
 
 class Qwen2_5_VLVisionFlashAttention2(nn.Module):
