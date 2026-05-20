@@ -208,17 +208,45 @@
 
 ### 推荐环境
 
-- **软件环境：** Python 3.10+，CUDA 12.4+（必需）
+- **操作系统：** Windows 10/11（64 位）
+- **软件环境：** Python 3.11（由 `setup_env.bat` 自动固定），CUDA 12.8+（必需）
 - **硬件环境：** 推理至少需要一张显存不低于 40GB 的 GPU
 
 ### 安装步骤
-```bash
-bash ./setup_env.sh
+```cmd
+setup_env.bat
+```
+
+该脚本会自动完成以下操作：
+1. 下载 `uv.exe`（Python 包管理器）
+2. 固定 Python 3.11 并创建 `.venv` 虚拟环境
+3. 从 `requirements.txt` 安装所有依赖（自动过滤 Linux 专用包）
+4. 安装 Windows 兼容的 `triton` 和 `flash-attn` wheel
+5. 安装 `torch 2.7.0+cu128`、`transformers`、`diffusers`、`gradio`
+6. 从 HuggingFace 下载模型权重（`Lance_3B_Video`、`Qwen2.5-VL-ViT`、`Wan2.2_VAE`）到 `downloads/`
+
+可选参数：
+```cmd
+setup_env.bat --uv-tag 0.11.15    :: 指定 uv 版本
+setup_env.bat --clear-venv        :: 删除 .venv 后重新创建
 ```
 
 ### 下载模型权重
 
-请从 [Hugging Face 上的 Lance-3B](https://huggingface.co/bytedance-research/Lance) 下载所需的全部模型权重，并放置到 `downloads/` 目录下。
+如果在安装时跳过了自动下载，或者需要额外的模型变体，可使用以下脚本。
+
+## 📥 Batch 脚本说明
+
+本项目是 Lance 的 **Windows 原生移植版**。所有原始的 `.sh` 脚本已替换为 `.bat` 等效脚本：
+
+| 脚本 | 用途 |
+| --- | --- |
+| `setup_env.bat` | **完整环境搭建。** 下载 `uv.exe`，创建 `.venv`，安装所有 Python 依赖（包括 Windows 兼容的 `triton` 和 `flash-attn`），并下载模型权重。这是第一个需要运行的脚本。 |
+| `lance_download_models.bat` | **交互式模型下载器。** 启动 `lance_download_models.py`——通过交互式菜单选择要下载或更新的模型组件（`Lance_3B_Video`、`Lance_3B`、`Qwen2.5-VL-ViT`、`Wan2.2_VAE` 或组合包）。支持断点续传并显示下载进度。 |
+| `download_lance_3b.bat` | **仅下载 `Lance_3B`（图像模型）。** 快速下载 `Lance_3B/` 权重到 `downloads/`。如果已存在则跳过。 |
+| `inference_lance.bat` | **统一推理启动器。** 通过 `accelerate launch` 运行 `inference_lance.py`。支持全部六种任务（`t2i`、`t2v`、`image_edit`、`video_edit`、`x2t_image`、`x2t_video`）。参数可通过环境变量或命令行标志配置（见下方说明）。 |
+| `run_gradio_image.bat` | **启动图像 Gradio 演示。** 运行 `lance_gradio_image.py`——提供 `t2i`（文生图）、`image_edit`（图像编辑）和 `x2t_image`（图像理解）的 Web 界面。启动时可选择普通模式或 `--fp8` 模式。 |
+| `run_gradio_video.bat` | **启动视频 Gradio 演示。** 运行 `lance_gradio_video.py`——提供 `t2v`（文生视频）、`v2t`（视频理解）和 `video_edit`（视频编辑）的 Web 界面。启动时可选择普通模式或 `--fp8` 模式。 |
 
 ## 📚 使用方法
 
@@ -228,83 +256,52 @@ Lance 为生成、编辑和理解任务提供了统一的命令行入口：
 
 #### 方式一：配置并运行统一推理脚本
 
-```bash
-bash inference_lance.sh
+```cmd
+inference_lance.bat
 ```
 
-- 运行前，请先在 `inference_lance.sh` 顶部配置推理参数。
+- 运行前，可以通过环境变量配置推理参数，或编辑 `inference_lance.bat` 顶部的默认值。
 - **支持任务：** `t2i`、`t2v`、`image_edit`、`video_edit`、`x2t_image` 和 `x2t_video`。你也可以在 `inference_lance.py` 中修改 `TASK_DEFAULT_CONFIGS`，自定义每个任务默认使用的数据样例。
 - **注意：** 对于所有任务，建议在编写输入 prompt 时参考提供示例中的 `prompt` 格式，这通常有助于获得更好的生成效果。
 
+#### 方式二：通过命令行传递参数
 
-#### Option 2: 运行任务专用一键脚本
+我们提供了面向不同生成、编辑和理解任务的一键启动命令。
 
-我们提供了面向不同生成、编辑和理解任务的一键启动命令，便于快速运行指定任务类型。
+##### 文生视频
 
-##### 文本-视频生成
-
-```bash
-bash inference_lance.sh \
-  --TASK_NAME t2v \
-  --MODEL_PATH downloads/Lance_3B_Video \
-  --RESOLUTION video_480p \
-  --NUM_FRAMES 121 \
-  --VIDEO_HEIGHT 480 \
-  --VIDEO_WIDTH 848 \
-  --SAVE_PATH_GEN results/t2v
+```cmd
+inference_lance.bat --TASK_NAME t2v --MODEL_PATH downloads/Lance_3B_Video --RESOLUTION video_480p --NUM_FRAMES 121 --VIDEO_HEIGHT 480 --VIDEO_WIDTH 848 --SAVE_PATH_GEN results/t2v
 ```
 
-##### 文本-图像生成
+##### 文生图
 
-```bash
-bash inference_lance.sh \
-  --TASK_NAME t2i \
-  --MODEL_PATH downloads/Lance_3B \
-  --RESOLUTION image_768res \
-  --VIDEO_HEIGHT 768 \
-  --VIDEO_WIDTH 768 \
-  --SAVE_PATH_GEN results/t2i
+```cmd
+inference_lance.bat --TASK_NAME t2i --MODEL_PATH downloads/Lance_3B --RESOLUTION image_768res --VIDEO_HEIGHT 768 --VIDEO_WIDTH 768 --SAVE_PATH_GEN results/t2i
 ```
 
 ##### 视频编辑
 
-```bash
-bash inference_lance.sh \
-  --TASK_NAME video_edit \
-  --MODEL_PATH downloads/Lance_3B_Video \
-  --RESOLUTION video_480p \
-  --SAVE_PATH_GEN results/video_edit
+```cmd
+inference_lance.bat --TASK_NAME video_edit --MODEL_PATH downloads/Lance_3B_Video --RESOLUTION video_480p --SAVE_PATH_GEN results/video_edit
 ```
 
 ##### 图像编辑
 
-```bash
-bash inference_lance.sh \
-  --TASK_NAME image_edit \
-  --MODEL_PATH downloads/Lance_3B \
-  --RESOLUTION image_768res \
-  --SAVE_PATH_GEN results/image_edit
+```cmd
+inference_lance.bat --TASK_NAME image_edit --MODEL_PATH downloads/Lance_3B --RESOLUTION image_768res --SAVE_PATH_GEN results/image_edit
 ```
 
 ##### 视频理解
 
-```bash
-bash inference_lance.sh \
-  --TASK_NAME x2t_video \
-  --MODEL_PATH downloads/Lance_3B_Video \
-  --RESOLUTION video_480p \
-  --NUM_FRAMES 50 \
-  --SAVE_PATH_GEN results/x2t_video
+```cmd
+inference_lance.bat --TASK_NAME x2t_video --MODEL_PATH downloads/Lance_3B_Video --RESOLUTION video_480p --NUM_FRAMES 50 --SAVE_PATH_GEN results/x2t_video
 ```
 
 ##### 图像理解
 
-```bash
-bash inference_lance.sh \
-  --TASK_NAME x2t_image \
-  --MODEL_PATH downloads/Lance_3B \
-  --RESOLUTION image_768res \
-  --SAVE_PATH_GEN results/x2t_image
+```cmd
+inference_lance.bat --TASK_NAME x2t_image --MODEL_PATH downloads/Lance_3B --RESOLUTION image_768res --SAVE_PATH_GEN results/x2t_image
 ```
 
 #### 可用任务
@@ -325,11 +322,11 @@ bash inference_lance.sh \
 
 #### 参数说明
 
-你可以在 `inference_lance.sh` 顶部配置以下超参数：
+你可以通过命令行标志或编辑 `inference_lance.bat` 顶部的默认值来配置以下超参数：
 
 | 参数 | 默认值 | 说明 |
 | --- | --- | --- |
-| `MODEL_PATH` | `"downloads/Lance_3B"` | 下载后的 Lance 模型权重路径（如 `Lance_3B` 或 `Lance_3B_Video`）。 |
+| `MODEL_PATH` | `"downloads/Lance_3B_Video"` | 下载后的 Lance 模型权重路径（如 `Lance_3B` 或 `Lance_3B_Video`）。 |
 | `NUM_GPUS` | `1` | 用于推理的 GPU 数量。 |
 | `VALIDATION_NUM_TIMESTEPS` | `30` | 去噪步数（例如 30 或 50）。 |
 | `VALIDATION_TIMESTEP_SHIFT` | `3.5` | Flow matching 调度中的 timestep shift 参数。 |
@@ -340,9 +337,32 @@ bash inference_lance.sh \
 | `RESOLUTION` | `"video_480p"` | 基础分辨率预设（如 `image_768res` 或 `video_480p`）。 |
 
 ### Gradio
-```bash
-python lance_gradio_t2v_v2t.py --gpus 0 --server-port 7860
+
+#### 图像演示（t2i / image_edit / x2t_image）
+
+```cmd
+run_gradio_image.bat
 ```
+
+或直接使用参数启动：
+```cmd
+.venv\Scripts\python.exe lance_gradio_image.py --gpus 0 --server-port 7861
+.venv\Scripts\python.exe lance_gradio_image.py --gpus 0 --server-port 7861 --fp8
+```
+
+#### 视频演示（t2v / v2t / video_edit）
+
+```cmd
+run_gradio_video.bat
+```
+
+或直接使用参数启动：
+```cmd
+.venv\Scripts\python.exe lance_gradio_video.py --gpus 0 --server-port 7860
+.venv\Scripts\python.exe lance_gradio_video.py --gpus 0 --server-port 7860 --fp8
+```
+
+两个 Gradio 脚本均支持多 GPU 推理（`--gpus 0,1,2,3`）和 `--fp8` 模式以降低显存占用（约节省 50%）。
 
 ### 基准评测
 

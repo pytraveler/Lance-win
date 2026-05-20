@@ -208,17 +208,45 @@
 
 ### Recommended Environment
 
-- **Software:** Python 3.10+, CUDA 12.4+ (required)
+- **OS:** Windows 10/11 (64-bit)
+- **Software:** Python 3.11 (pinned automatically by `setup_env.bat`), CUDA 12.8+ (required)
 - **Hardware:** A GPU with at least 40GB VRAM is required for inference
 
 ### Installation Steps
-```bash
-bash ./setup_env.sh
+```cmd
+setup_env.bat
+```
+
+This script will:
+1. Download `uv.exe` (Python package manager)
+2. Pin Python 3.11 and create a `.venv` virtual environment
+3. Install all dependencies from `requirements.txt` (filtering out Linux-only packages)
+4. Install Windows-compatible wheels for `triton` and `flash-attn`
+5. Install `torch 2.7.0+cu128`, `transformers`, `diffusers`, `gradio`
+6. Download model weights (`Lance_3B_Video`, `Qwen2.5-VL-ViT`, `Wan2.2_VAE`) from HuggingFace into `downloads/`
+
+Optional flags:
+```cmd
+setup_env.bat --uv-tag 0.11.15    :: specify uv version
+setup_env.bat --clear-venv        :: delete .venv before recreating
 ```
 
 ### Download Model Weights
 
-Please download all necessary model checkpoints from [Lance-3B on Hugging Face](https://huggingface.co/bytedance-research/Lance) and place them in the `downloads/` directory.
+If you skipped the automatic download during setup, or need additional model variants, use the scripts below.
+
+## 📥 Batch Scripts Reference
+
+This is a **Windows-native fork** of Lance. All shell scripts (`.sh`) have been replaced with `.bat` equivalents:
+
+| Script | Purpose |
+| --- | --- |
+| `setup_env.bat` | **Full environment setup.** Downloads `uv.exe`, creates a `.venv`, installs all Python dependencies (including Windows-compatible `triton` and `flash-attn` wheels), and downloads model weights. This is the first script to run. |
+| `lance_download_models.bat` | **Interactive model downloader.** Launches `lance_download_models.py` — an interactive menu that lets you select which model components to download or update (`Lance_3B_Video`, `Lance_3B`, `Qwen2.5-VL-ViT`, `Wan2.2_VAE`, or combined sets). Supports resume and shows download progress. |
+| `download_lance_3b.bat` | **Download `Lance_3B` (image model) only.** A quick one-shot script that downloads just the `Lance_3B/` weights from HuggingFace into `downloads/`. Skips if already present. |
+| `inference_lance.bat` | **Unified inference launcher.** Runs `inference_lance.py` via `accelerate launch`. Supports all six tasks (`t2i`, `t2v`, `image_edit`, `video_edit`, `x2t_image`, `x2t_video`). Parameters can be configured via environment variables or command-line flags (see below). |
+| `run_gradio_image.bat` | **Launch the image Gradio demo.** Starts `lance_gradio_image.py` — a web UI for `t2i` (Text-to-Image), `image_edit` (Image Editing), and `x2t_image` (Image Understanding). Prompts for normal or `--fp8` mode at launch. |
+| `run_gradio_video.bat` | **Launch the video Gradio demo.** Starts `lance_gradio_video.py` — a web UI for `t2v` (Text-to-Video), `v2t` (Video Understanding), and `video_edit` (Video Editing). Prompts for normal or `--fp8` mode at launch. |
 
 ## 📚 Usage
 
@@ -229,82 +257,52 @@ We provide a unified command-line interface for all generation / editing / under
 
 #### Option 1: Configure and Run the Unified Script
 
-```bash
-bash inference_lance.sh
+```cmd
+inference_lance.bat
 ```
 
-- Before running, please configure the inference parameters at the top of `inference_lance.sh`.
+- Before running, you can configure the inference parameters via environment variables or edit the defaults at the top of `inference_lance.bat`.
 - **Supported tasks:** `t2i`, `t2v`, `image_edit`, `video_edit`, `x2t_image`, and `x2t_video`. You can modify `TASK_DEFAULT_CONFIGS` in `inference_lance.py` to customize the default data samples for each task.
 - **Note:** For all tasks, we recommend following the `prompt` format used in the provided examples when writing input prompts, as this typically leads to better generation quality.
 
-#### Option 2: Configure and Run the Unified Script
+#### Option 2: Pass Parameters via Command Line
 
 We provide task-specific one-click commands for different generation, editing, and understanding tasks.
 
 ##### Text-to-Video Generation
 
-```bash
-bash inference_lance.sh \
-  --TASK_NAME t2v \
-  --MODEL_PATH downloads/Lance_3B_Video \
-  --RESOLUTION video_480p \
-  --NUM_FRAMES 121 \
-  --VIDEO_HEIGHT 480 \
-  --VIDEO_WIDTH 848 \
-  --SAVE_PATH_GEN results/t2v
+```cmd
+inference_lance.bat --TASK_NAME t2v --MODEL_PATH downloads/Lance_3B_Video --RESOLUTION video_480p --NUM_FRAMES 121 --VIDEO_HEIGHT 480 --VIDEO_WIDTH 848 --SAVE_PATH_GEN results/t2v
 ```
 
 ##### Text-to-Image Generation
 
-```bash
-bash inference_lance.sh \
-  --TASK_NAME t2i \
-  --MODEL_PATH downloads/Lance_3B \
-  --RESOLUTION image_768res \
-  --VIDEO_HEIGHT 768 \
-  --VIDEO_WIDTH 768 \
-  --SAVE_PATH_GEN results/t2i
+```cmd
+inference_lance.bat --TASK_NAME t2i --MODEL_PATH downloads/Lance_3B --RESOLUTION image_768res --VIDEO_HEIGHT 768 --VIDEO_WIDTH 768 --SAVE_PATH_GEN results/t2i
 ```
 
 ##### Video Editing
 
-```bash
-bash inference_lance.sh \
-  --TASK_NAME video_edit \
-  --MODEL_PATH downloads/Lance_3B_Video \
-  --RESOLUTION video_480p \
-  --SAVE_PATH_GEN results/video_edit
+```cmd
+inference_lance.bat --TASK_NAME video_edit --MODEL_PATH downloads/Lance_3B_Video --RESOLUTION video_480p --SAVE_PATH_GEN results/video_edit
 ```
 
 ##### Image Editing
 
-```bash
-bash inference_lance.sh \
-  --TASK_NAME image_edit \
-  --MODEL_PATH downloads/Lance_3B \
-  --RESOLUTION image_768res \
-  --SAVE_PATH_GEN results/image_edit
+```cmd
+inference_lance.bat --TASK_NAME image_edit --MODEL_PATH downloads/Lance_3B --RESOLUTION image_768res --SAVE_PATH_GEN results/image_edit
 ```
 
 ##### Video Understanding
 
-```bash
-bash inference_lance.sh \
-  --TASK_NAME x2t_video \
-  --MODEL_PATH downloads/Lance_3B_Video \
-  --RESOLUTION video_480p \
-  --NUM_FRAMES 50 \
-  --SAVE_PATH_GEN results/x2t_video
+```cmd
+inference_lance.bat --TASK_NAME x2t_video --MODEL_PATH downloads/Lance_3B_Video --RESOLUTION video_480p --NUM_FRAMES 50 --SAVE_PATH_GEN results/x2t_video
 ```
 
 ##### Image Understanding
 
-```bash
-bash inference_lance.sh \
-  --TASK_NAME x2t_image \
-  --MODEL_PATH downloads/Lance_3B \
-  --RESOLUTION image_768res \
-  --SAVE_PATH_GEN results/x2t_image
+```cmd
+inference_lance.bat --TASK_NAME x2t_image --MODEL_PATH downloads/Lance_3B --RESOLUTION image_768res --SAVE_PATH_GEN results/x2t_image
 ```
 
 #### Available Tasks
@@ -325,11 +323,11 @@ For understanding examples:
 
 #### Parameters
 
-You can configure the following hyperparameters at the top of the `inference_lance.sh` script:
+You can configure the following hyperparameters via command-line flags or by editing the defaults at the top of `inference_lance.bat`:
 
 | Parameter | Default Value | Description |
 | --- | --- | --- |
-| `MODEL_PATH` | `"downloads/Lance_3B"` | Path to the downloaded Lance model weights  (`Lance_3B` or `Lance_3B_Video`). |
+| `MODEL_PATH` | `"downloads/Lance_3B_Video"` | Path to the downloaded Lance model weights  (`Lance_3B` or `Lance_3B_Video`). |
 | `NUM_GPUS` | `1` | Number of GPUs to use for inference. |
 | `VALIDATION_NUM_TIMESTEPS` | `30` | Number of denoising steps (e.g., 30 or 50). |
 | `VALIDATION_TIMESTEP_SHIFT` | `3.5` | Timestep shift parameter for flow matching scheduling. |
@@ -340,9 +338,32 @@ You can configure the following hyperparameters at the top of the `inference_lan
 | `RESOLUTION` | `"video_480p"` | Base resolution preset (`image_768res` or `video_480p`). |
 
 ### Gradio
-```bash
-python lance_gradio_t2v_v2t.py --gpus 0 --server-port 7860
+
+#### Image Demo (t2i / image_edit / x2t_image)
+
+```cmd
+run_gradio_image.bat
 ```
+
+Or directly with options:
+```cmd
+.venv\Scripts\python.exe lance_gradio_image.py --gpus 0 --server-port 7861
+.venv\Scripts\python.exe lance_gradio_image.py --gpus 0 --server-port 7861 --fp8
+```
+
+#### Video Demo (t2v / v2t / video_edit)
+
+```cmd
+run_gradio_video.bat
+```
+
+Or directly with options:
+```cmd
+.venv\Scripts\python.exe lance_gradio_video.py --gpus 0 --server-port 7860
+.venv\Scripts\python.exe lance_gradio_video.py --gpus 0 --server-port 7860 --fp8
+```
+
+Both Gradio scripts support multi-GPU inference (`--gpus 0,1,2,3`) and `--fp8` for reduced VRAM usage (~50% savings).
 
 ### Benchmarks
 
