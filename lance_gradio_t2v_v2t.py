@@ -78,6 +78,66 @@ def ensure_dirs() -> None:
     RESULTS_ROOT.mkdir(parents=True, exist_ok=True)
 
 
+def convert_weights_to_fp8(model: torch.nn.Module, device: int) -> None:
+    """Convert all ``nn.Linear`` weights to *fp8_e4m3fn* to halve VRAM usage.
+
+    Weight tensors are stored on-GPU in ``torch.float8_e4m3fn`` (1 byte/value
+    instead of 2 bytes/value for bfloat16).  Forward hooks handle on-the-fly
+    dequantisation back to the original dtype so that the rest of the inference
+    pipeline (autocast, F.linear, etc.) continues to work unchanged.
+
+    The peak overhead is one layer's worth of bf16 weights at a time (the
+    dequantised tensor is released immediately after each layer's forward pass).
+    """
+    import torch.nn as nn
+
+    mem_before = torch.cuda.memory_allocated(device) / (1024 ** 3)
+    converted = 0
+
+    for module in model.modules():
+        if not isinstance(module, nn.Linear) or module.weight is None:
+            continue
+
+        original_dtype = module.weight.dtype
+        if original_dtype == torch.float8_e4m3fn:
+            continue
+
+        # Convert weight data to fp8.
+        module.weight.data = module.weight.data.to(torch.float8_e4m3fn)
+        module.weight.requires_grad_(False)
+
+        # Register forward hooks that dequantise the weight to bf16 just before
+        # the layer's forward pass and restore the fp8 storage right after.
+        def _make_hooks(orig_dtype):
+            def _pre_forward(mod, args):
+                mod._fp8_weight_storage = mod.weight.data
+                mod.weight.data = mod.weight.data.to(orig_dtype)
+                return args
+
+            def _post_forward(mod, args, output):
+                if hasattr(mod, "_fp8_weight_storage"):
+                    mod.weight.data = mod._fp8_weight_storage
+                    del mod._fp8_weight_storage
+                return output
+
+            return _pre_forward, _post_forward
+
+        pre_hook, post_hook = _make_hooks(original_dtype)
+        module.register_forward_pre_hook(pre_hook)
+        module.register_forward_hook(post_hook)
+        converted += 1
+
+    clean_memory()
+
+    mem_after = torch.cuda.memory_allocated(device) / (1024 ** 3)
+    saved = mem_before - mem_after
+    print(
+        f"[fp8][gpu:{device}] Converted {converted} Linear layer(s) to fp8_e4m3fn. "
+        f"VRAM: {mem_before:.2f} GB -> {mem_after:.2f} GB (saved ~{saved:.2f} GB)",
+        flush=True,
+    )
+
+
 def save_generation_record(record: dict, save_dir: Path) -> None:
     ensure_dirs()
     run_record_path = save_dir / RUN_RECORD_FILENAME
@@ -153,11 +213,12 @@ def extract_text_result(save_dir: Path) -> str:
 
 
 class LanceT2VV2TPipeline:
-    def __init__(self, device_id: int) -> None:
+    def __init__(self, device_id: int, use_fp8: bool = False) -> None:
         self._init_lock = threading.Lock()
         self._generate_lock = threading.Lock()
         self.initialized = False
         self.device = device_id
+        self.use_fp8 = use_fp8
         self.logger = get_logger(f"lance_t2v_v2t_gpu{device_id}")
 
         self.model: Optional[Lance] = None
@@ -357,6 +418,12 @@ class LanceT2VV2TPipeline:
             if vae_model is not None and hasattr(vae_model, "eval"):
                 vae_model.eval()
 
+            if self.use_fp8:
+                stage_start = time.perf_counter()
+                print(f"[startup][gpu:{self.device}] Converting weights to fp8_e4m3fn ...", flush=True)
+                convert_weights_to_fp8(model, self.device)
+                self._log_stage("fp8 conversion", stage_start)
+
             self.model = model
             self.vae_model = vae_model
             self.vae_config = vae_config
@@ -521,6 +588,7 @@ class LanceT2VV2TPipeline:
                     save_source_video=False,
                     save_path_gen=request_inference_args.save_path_gen,
                     save_path_gt="",
+                    skip_dtype_cast=self.use_fp8,
                 )
                 elapsed = time.perf_counter() - generate_start
                 save_prompt_results(request_inference_args.prompt_data_dict, request_inference_args.save_path_gen, self.logger)
@@ -641,11 +709,12 @@ class LanceT2VV2TPipeline:
 
 
 class PipelinePool:
-    def __init__(self, gpu_ids: list[int]) -> None:
+    def __init__(self, gpu_ids: list[int], use_fp8: bool = False) -> None:
         if not gpu_ids:
             raise ValueError("At least one GPU must be configured.")
         self.gpu_ids = gpu_ids
-        self.pipelines = [LanceT2VV2TPipeline(device_id=gpu_id) for gpu_id in gpu_ids]
+        self.use_fp8 = use_fp8
+        self.pipelines = [LanceT2VV2TPipeline(device_id=gpu_id, use_fp8=use_fp8) for gpu_id in gpu_ids]
         self._available = deque(self.pipelines)
         self._condition = threading.Condition()
 
@@ -922,6 +991,11 @@ def parse_args() -> argparse.Namespace:
         default=DEFAULT_QUEUE_SIZE,
         help="Maximum number of queued Gradio requests.",
     )
+    parser.add_argument(
+        "--fp8",
+        action="store_true",
+        help="Convert model weights to fp8_e4m3fn to reduce VRAM usage (~50%% savings).",
+    )
     return parser.parse_args()
 
 
@@ -941,7 +1015,7 @@ if __name__ == "__main__":
     args = parse_args()
     QUEUE_MAX_SIZE = args.queue_size
     gpu_ids = parse_gpu_ids(args.gpus)
-    PIPELINE_POOL = PipelinePool(gpu_ids)
+    PIPELINE_POOL = PipelinePool(gpu_ids, use_fp8=args.fp8)
     PIPELINE_POOL.initialize_all()
     demo = build_demo()
     demo.queue(

@@ -257,9 +257,13 @@ def validate_on_fixed_batch(
     save_source_video: bool = False,
     save_path_gen: str = "",
     save_path_gt: str = "",
+    skip_dtype_cast: bool = False,
 ):
     val_data = val_data_cpu.cuda(device).to_dict()
-    fsdp_model = fsdp_model.to(device=device, dtype=torch.bfloat16)
+    if skip_dtype_cast:
+        fsdp_model = fsdp_model.to(device=device)
+    else:
+        fsdp_model = fsdp_model.to(device=device, dtype=torch.bfloat16)
 
     with torch.no_grad(), torch.amp.autocast("cuda", enabled=True, dtype=torch.bfloat16):
         # Compute padded_latent.
