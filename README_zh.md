@@ -27,25 +27,49 @@
     <a href="https://lance-project.github.io/" style="text-decoration: none; margin: 0 8px;"><img src="https://img.shields.io/badge/Homepage-Lance-blue?style=flat" alt="Homepage"></a>
     <a href="http://arxiv.org/abs/2605.18678" style="text-decoration: none; margin: 0 8px;"><img src="https://img.shields.io/badge/Paper-arXiv-red?style=flat&logo=arxiv" alt="arXiv"></a>
     <a href="https://huggingface.co/bytedance-research/Lance" style="text-decoration: none; margin: 0 8px;"><img src="https://img.shields.io/badge/Model-HuggingFace-yellow?style=flat&logo=huggingface" alt="Model"></a>
+    <a href="https://huggingface.co/spaces/bytedance-research/Lance" style="text-decoration: none; margin: 0 8px;"><img src="https://img.shields.io/badge/Demo-HuggingFace-40bfe6?style=flat&logo=huggingface" alt="Demo"></a>
     <br>
     <a href="./README.md"><ins>English</ins></a> | 简体中文 | <a href="./README_ru.md"><ins>Русский</ins></a>
   </p>
 </div>
 
+> **注意：** Lance 是一个研究项目，而不是经过充分产品化打磨的模型。当前开源 checkpoint 使用不超过 128 张 A100 GPU 训练，训练阶段覆盖到 768x768 图像生成和 480p、12 FPS 视频生成。我们希望将 Lance 作为一个研究参考，分享在较小模型规模和相对有限算力下统一图像/视频理解、生成和编辑的建模思路、训练流程和推理代码。模型效果可能会随 prompt、分辨率、时长、运动复杂度和编辑场景而波动，post-training recipe 仍有进一步改进空间。我们欢迎社区提供建设性反馈，帮助项目持续改进。
+
+## 🔥 更新
+
+- **`2026/05/26`**: 🎨 Gradio 界面现已支持图像和视频生成、编辑与理解任务。[欢迎体验](assets/docs/changelog/2026-05-26.md)！
+- **`2026/05/25`**: ✨ [Hugging Face Space](https://huggingface.co/spaces/bytedance-research/Lance) 已上线，感谢 HF 团队的支持！
+- **`2026/05/19`**: 🤗 技术报告现已发布于 [arXiv](http://arxiv.org/abs/2605.18678)。
+- **`2026/05/18`**: 🔥 我们发布了 [项目主页](https://lance-project.github.io/)，并在 [GitHub](https://github.com/bytedance/Lance/) 和 [Hugging Face](https://huggingface.co/bytedance-research/Lance) 上开源了初版推理代码和模型权重。
+
 ## 🌟 亮点
 
 **Lance** 是一个3B参数、原生统一的多模态模型，在单一框架下同时支持 **图像与视频的理解、生成和编辑**。
 
-- **3B 规模高效强大。** 仅使用 **3B active parameters**，Lance 即可在图像生成、图像编辑和视频生成等基准上取得强劲表现。
-- **从零训练。** Lance 采用分阶段多任务训练配方，在 **128 张 A100 GPU** 的预算内从零完成训练。
+- **3B 规模高效。** 仅使用 **3B active parameters**，Lance 即可在图像生成、图像编辑和视频生成等基准上取得有竞争力的表现。
+- **从零训练。** Lance 采用分阶段多任务训练配方从零训练，并在 **不超过 128 张 A100 GPU** 的预算内完成训练。
+
+我们正在持续更新和改进本仓库。如果你发现任何问题或有改进建议，欢迎提出 issue 或提交 pull request（PR）💖。
 
 <div align="center">
   <img src="assets/benchmarks/benchmark-overview.png" alt="Lance benchmark overview across image generation, image editing, video generation, and video understanding" width="980">
 </div>
 
+## 📅 路线图
+
+- [ ] 发布 fine-tuning 代码。
+- [ ] 增加 image-to-video generation 代码支持。
+
 ## 🎨 演示
 
-### 文生视频
+<details>
+<summary><strong>展开查看演示结果</strong></summary>
+
+<div align="center">
+  <strong>🔥 建议浏览我们的 <a href="https://lance-project.github.io/">主页</a> 查看更多效果。🔥</strong>
+</div>
+
+<h3 align="center">文生视频</h3>
 
 <table align="center">
   <tr>
@@ -62,7 +86,7 @@
   </tr>
 </table>
 
-### 视频编辑
+<h3 align="center">视频编辑</h3>
 
 <table align="center">
   <tr>
@@ -79,7 +103,7 @@
   </tr>
 </table>
 
-### 多轮一致性编辑
+<h3 align="center">多轮一致性编辑</h3>
 
 <div align="center">
   <a href="assets/multi-turn-editing/videos/multi-turn-editing-demo-01.mp4">
@@ -87,7 +111,7 @@
   </a>
 </div>
 
-### 智能视频生成
+<h3 align="center">智能视频生成</h3>
 
 <table align="center">
   <tr>
@@ -98,211 +122,181 @@
   </tr>
 </table>
 
-### 视频理解
-
-<div align="center">
-  <table align="center">
-    <tr>
-      <td align="left" valign="top" width="33%">
-        <a href="assets/video-understanding/videos/video-understanding-vqa-01.mp4">
-          <img src="assets/video-understanding/previews/video-understanding-vqa-01.gif" width="100%">
-        </a>
-        <p><strong>问题：</strong> How many times did the person launch objects on the table? Options: (A) 3 (B) 2 (C) 4</p>
-        <p><strong>Response:</strong> (A) 3</p>
-      </td>
-      <td align="left" valign="top" width="33%">
-        <a href="assets/video-understanding/videos/video-understanding-vqa-02.mp4">
-          <img src="assets/video-understanding/previews/video-understanding-vqa-02.gif" width="100%">
-        </a>
-        <p><strong>问题：</strong> The person makes sets of repeated actions. How many distinct repeated actions did the person do? Options: (A) 2 (B) 3 (C) 4</p>
-        <p><strong>Response:</strong> (A) 2</p>
-      </td>
-      <td align="left" valign="top" width="33%">
-        <a href="assets/video-understanding/videos/video-understanding-vqa-03.mp4">
-          <img src="assets/video-understanding/previews/video-understanding-vqa-03.gif" width="100%">
-        </a>
-        <p><strong>问题：</strong> In which direction does the purple sphere move in the video? Options: (A) Down and to the right. (B) Up and to the left. (C) Up and to the right. (D) The object is stationary.</p>
-        <p><strong>Response:</strong> (A) Down and to the right.</p>
-      </td>
-    </tr>
-    <tr>
-      <td align="left" valign="top" width="33%">
-        <a href="assets/video-understanding/videos/video-understanding-vqa-04.mp4">
-          <img src="assets/video-understanding/previews/video-understanding-vqa-04.gif" width="100%">
-        </a>
-        <p><strong>问题：</strong> What is the unrealistic phenomenon displayed in the video? Options: (A) The man can manipulate time via phone. (B) Man grabs an object through a phone screen. (C) Chocolate transforms into different objects. (D) Visible means of propulsion enables flight.</p>
-        <p><strong>Response:</strong> (B) Man grabs an object through a phone screen.</p>
-      </td>
-      <td align="left" valign="top" width="33%">
-        <a href="assets/video-understanding/videos/video-understanding-caption-short-01.mp4">
-          <img src="assets/video-understanding/previews/video-understanding-caption-short-01.gif" width="100%">
-        </a>
-        <p><strong>问题：</strong> Offer a succinct account of the culinary process shown in this video.</p>
-        <p><strong>Response:</strong> Add tomato puree and mix it well with chicken pieces.</p>
-      </td>
-      <td align="left" valign="top" width="33%">
-        <a href="assets/video-understanding/videos/video-understanding-caption-long-01.mp4">
-          <img src="assets/video-understanding/previews/video-understanding-caption-long-01.gif" width="100%">
-        </a>
-        <p><strong>问题：</strong> Provide a detailed description of the given video, capturing its key moments.</p>
-        <p><strong>Response:</strong> In a sunlit meadow, a small tortoiseshell butterfly rests on a purple flower. A bee, with black and yellow stripes, lands on the same flower. The butterfly flaps its wings gently, while the bee busies itself, collecting nectar. The flower sways slightly in the breeze. The butterfly then takes off, and the bee follows, both heading to the next flower. The scene is a vivid display of insect interaction in a natural setting, with the colors of the butterfly and the bee contrasting against the green background of the meadow. The video captures this peaceful moment in a short 6-second duration.</p>
-      </td>
-    </tr>
-  </table>
-</div>
-
-### 文生图
-
-<div align="center">
-  <img src="assets/text-to-image/text-to-image-overview.webp" alt="Lance text-to-image generation examples" width="100%">
-</div>
-
-### 图像编辑
-
-<div align="center">
-  <img src="assets/image-editing/image-editing-overview.webp" alt="Lance image editing examples" width="100%">
-</div>
-
-### 图像理解
-
-<div align="center">
-  <table align="center">
-    <tr>
-      <td align="left" valign="top" width="33%">
-        <img src="assets/image-understanding/cases/image-understanding-case-01.png" alt="Pie chart reasoning case" width="100%">
-        <p><strong>问题：</strong> Is the largest segment greater than sum of all the other segments?</p>
-        <p><strong>Response:</strong> Yes, the largest segment in the pie chart is the blue one, which is the most populous segment.</p>
-      </td>
-      <td align="left" valign="top" width="33%">
-        <img src="assets/image-understanding/cases/image-understanding-case-02.png" alt="Survey chart about border security priorities" width="100%">
-        <p><strong>问题：</strong> What percentage of respondents want better border security?</p>
-        <p><strong>Response:</strong> 29%</p>
-      </td>
-      <td align="left" valign="top" width="33%">
-        <img src="assets/image-understanding/cases/image-understanding-case-03.png" alt="License plate recognition case" width="100%">
-        <p><strong>问题：</strong> What is the license plate number of the car?</p>
-        <p><strong>Response:</strong> The license plate number of the car is BX62 BFY.</p>
-      </td>
-    </tr>
-    <tr>
-      <td align="left" valign="top" width="33%">
-        <img src="assets/image-understanding/cases/image-understanding-case-04.png" alt="Market research chart reasoning case" width="100%">
-        <p><strong>问题：</strong> According to the data from the proprietary market research, how much amount was spent on the promotional meetings and events during 1998?</p>
-        <p><strong>Response:</strong> According to the data from the proprietary market research, the total amount spent on the promotional meetings and events during 1998 was approximately $1.3 billion.</p>
-      </td>
-      <td align="left" valign="top" width="33%">
-        <img src="assets/image-understanding/cases/image-understanding-case-05.png" alt="Colosseum description case" width="100%">
-        <p><strong>问题：</strong> What is the appearance of the Colosseum in Rome, Italy?</p>
-        <p><strong>Response:</strong> The Colosseum in Rome, Italy is a magnificent ancient amphitheater made of stone and concrete. It is characterized by its large, arched openings and its semi-circular shape. The Colosseum has been partially restored, and its original color has faded, but the architectural details, like the columns and the semi-circular arches, are still visible. The lighting in the image highlights the grandeur and historical significance of the Colosseum, making it stand out against the backdrop of the evening sky.</p>
-      </td>
-      <td align="left" valign="top" width="33%">
-        <img src="assets/image-understanding/cases/image-understanding-case-06.png" alt="Total solar eclipse case" width="100%">
-        <p><strong>问题：</strong> How does a total solar eclipse look like from Earth?</p>
-        <p><strong>Response:</strong> A total solar eclipse looks like a dark circle with a bright, white outer edge. This is a result of the Earth's rotation and the Earth's shadow, which partially obscures the sun's light. The bright white edge of the eclipse is caused by the sun's high energy and its interaction with the Earth's atmosphere, while the dark part of the eclipse is due to the Earth's shadow and the surrounding air currents. The solar eclipse's shape, with its bright white edge and dark center, is similar to the shape of a full moon or a dark disk. It is a natural phenomenon that occurs in the atmosphere of the Earth and is an important part of the solar system.</p>
-      </td>
-    </tr>
-  </table>
-</div>
+</details>
 
 ## 🚀 安装
 
 ### 推荐环境
 
-- **操作系统：** Windows 10/11（64 位）
-- **软件环境：** Python 3.11（由 `setup_env.bat` 自动固定），CUDA 12.8+（必需）
+- **操作系统：** Linux（推荐）或 Windows 10/11（64 位）
+- **软件环境：** Python 3.10+，CUDA 12.4+（必需）
 - **硬件环境：** 推理至少需要一张显存不低于 40GB 的 GPU
 
+我们在 NVIDIA A100 上测试通过了以下依赖组合：
+
+- PyTorch 2.8.0 + cu126 + flash-attn 2.8.3
+- PyTorch 2.5.1 + cu124 + flash-attn 2.6.3
+
+默认安装命令使用 PyTorch 2.8.0 + cu126 环境。对于其他 GPU 型号，请根据驱动版本、CUDA runtime、Python 版本和 GPU 架构自行选择并验证匹配的 PyTorch 与 `flash-attn` 版本组合。
+
+
 ### 安装步骤
+
+首先，克隆代码仓库：
+
+```bash
+git clone https://github.com/bytedance/Lance.git
+cd Lance
+```
+
+然后，配置环境：
+
+```bash
+conda create -n Lance python=3.11 -y
+conda activate Lance
+pip install torch==2.8.0 torchvision==0.23.0 torchaudio==2.8.0 --index-url https://download.pytorch.org/whl/cu126
+pip install -r requirements.txt
+pip install flash-attn==2.8.3 --no-build-isolation
+```
+
+> **注意：** 如果从源码安装 `flash-attn` 失败，可以改为安装预编译 wheel。下面的 wheelhouse 来自第三方仓库，仅作为**参考提供**；请在安装前确认 wheel 与当前 Python、PyTorch 和 CUDA 版本匹配：
+>
+> ```bash
+> pip install --no-cache-dir --no-deps --force-reinstall \
+> "https://huggingface.co/strangertoolshf/flash_attention_2_wheelhouse/resolve/main/wheelhouse-flash_attn-2.8.3/linux_x86_64/torch2.8/cu12/abiTRUE/cp311/flash_attn-2.8.3+cu12torch2.8cxx11abiTRUE-cp311-cp311-linux_x86_64.whl"
+> ```
+
+然后，从 [Hugging Face 上的 Lance-3B](https://huggingface.co/bytedance-research/Lance) 下载所需的全部模型权重，并放置到 `downloads/` 目录下：
+
+```bash
+from huggingface_hub import snapshot_download
+
+save_dir = "./downloads/"
+repo_id = "bytedance-research/Lance" 
+cache_dir = save_dir + "/cache"
+
+snapshot_download(cache_dir=cache_dir,
+  local_dir=save_dir,
+  repo_id=repo_id,
+  local_dir_use_symlinks=False,
+  resume_download=True,
+  allow_patterns=["*.json", "*.safetensors", "*.bin", "*.py", "*.md", "*.txt","*.pth",],
+)
+```
+
+
+#### Windows 快速安装
+
+在 Windows 上，可使用 `setup_env.bat` 一键安装：
+
 ```cmd
 setup_env.bat
 ```
 
-该脚本会自动完成以下操作：
+该脚本将自动完成：
 1. 下载 `uv.exe`（Python 包管理器）
-2. 固定 Python 3.11 并创建 `.venv` 虚拟环境
-3. 从 `requirements.txt` 安装所有依赖（自动过滤 Linux 专用包）
-4. 安装 Windows 兼容的 `triton` 和 `flash-attn` wheel
-5. 安装 `torch 2.7.0+cu128`、`transformers`、`diffusers`、`gradio`
-6. 从 HuggingFace 下载模型权重（`Lance_3B_Video`、`Qwen2.5-VL-ViT`、`Wan2.2_VAE`）到 `downloads/`
+2. 锁定 Python 3.11 并创建 `.venv` 虚拟环境
+3. 安装全部依赖（包括 Windows 兼容的 `triton` 和 `flash-attn`）
+4. 安装 `torch 2.7.0+cu128`、`transformers`、`diffusers`、`gradio`
+5. 从 HuggingFace 下载模型权重到 `downloads/` 目录
 
 可选参数：
 ```cmd
 setup_env.bat --uv-tag 0.11.15    :: 指定 uv 版本
-setup_env.bat --clear-venv        :: 删除 .venv 后重新创建
+setup_env.bat --clear-venv        :: 删除旧的 .venv 后重新创建
 ```
 
-### 下载模型权重
-
-如果在安装时跳过了自动下载，或者需要额外的模型变体，可使用以下脚本。
-
-## 📥 Batch 脚本说明
-
-本项目是 Lance 的 **Windows 原生移植版**。所有原始的 `.sh` 脚本已替换为 `.bat` 等效脚本：
-
-| 脚本 | 用途 |
-| --- | --- |
-| `setup_env.bat` | **完整环境搭建。** 下载 `uv.exe`，创建 `.venv`，安装所有 Python 依赖（包括 Windows 兼容的 `triton` 和 `flash-attn`），并下载模型权重。这是第一个需要运行的脚本。 |
-| `lance_download_models.bat` | **交互式模型下载器。** 启动 `lance_download_models.py`——通过交互式菜单选择要下载或更新的模型组件（`Lance_3B_Video`、`Lance_3B`、`Qwen2.5-VL-ViT`、`Wan2.2_VAE` 或组合包）。支持断点续传并显示下载进度。 |
-| `download_lance_3b.bat` | **仅下载 `Lance_3B`（图像模型）。** 快速下载 `Lance_3B/` 权重到 `downloads/`。如果已存在则跳过。 |
-| `inference_lance.bat` | **统一推理启动器。** 通过 `accelerate launch` 运行 `inference_lance.py`。支持全部六种任务（`t2i`、`t2v`、`image_edit`、`video_edit`、`x2t_image`、`x2t_video`）。参数可通过环境变量或命令行标志配置（见下方说明）。 |
-| `run_gradio_image.bat` | **启动图像 Gradio 演示。** 运行 `lance_gradio_image.py`——提供 `t2i`（文生图）、`image_edit`（图像编辑）和 `x2t_image`（图像理解）的 Web 界面。启动时可选择普通模式或 `--fp8` 模式。 |
-| `run_gradio_video.bat` | **启动视频 Gradio 演示。** 运行 `lance_gradio_video.py`——提供 `t2v`（文生视频）、`v2t`（视频理解）和 `video_edit`（视频编辑）的 Web 界面。启动时可选择普通模式或 `--fp8` 模式。 |
 
 ## 📚 使用方法
-
 ### 推理
 
-Lance 为生成、编辑和理解任务提供了统一的命令行入口：
+#### 基本用法
 
-#### 方式一：配置并运行统一推理脚本
+```bash
+bash inference_lance.sh
+```
+
+Windows 用户：
 
 ```cmd
 inference_lance.bat
 ```
 
-- 运行前，可以通过环境变量配置推理参数，或编辑 `inference_lance.bat` 顶部的默认值。
+- 运行前，请先在 `inference_lance.sh`（Linux）或 `inference_lance.bat`（Windows）顶部配置推理参数。
 - **支持任务：** `t2i`、`t2v`、`image_edit`、`video_edit`、`x2t_image` 和 `x2t_video`。你也可以在 `inference_lance.py` 中修改 `TASK_DEFAULT_CONFIGS`，自定义每个任务默认使用的数据样例。
 - **注意：** 对于所有任务，建议在编写输入 prompt 时参考提供示例中的 `prompt` 格式，这通常有助于获得更好的生成效果。
 
-#### 方式二：通过命令行传递参数
 
-我们提供了面向不同生成、编辑和理解任务的一键启动命令。
+#### 任务示例
 
 ##### 文生视频
 
-```cmd
-inference_lance.bat --TASK_NAME t2v --MODEL_PATH downloads/Lance_3B_Video --RESOLUTION video_480p --NUM_FRAMES 121 --VIDEO_HEIGHT 480 --VIDEO_WIDTH 848 --SAVE_PATH_GEN results/t2v
+```bash
+bash inference_lance.sh \
+  --TASK_NAME t2v \
+  --MODEL_PATH downloads/Lance_3B_Video \
+  --RESOLUTION video_480p \
+  --NUM_FRAMES 121 \
+  --VIDEO_HEIGHT 480 \
+  --VIDEO_WIDTH 848 \
+  --SAVE_PATH_GEN results/t2v
 ```
 
 ##### 文生图
 
-```cmd
-inference_lance.bat --TASK_NAME t2i --MODEL_PATH downloads/Lance_3B --RESOLUTION image_768res --VIDEO_HEIGHT 768 --VIDEO_WIDTH 768 --SAVE_PATH_GEN results/t2i
+```bash
+bash inference_lance.sh \
+  --TASK_NAME t2i \
+  --MODEL_PATH downloads/Lance_3B \
+  --RESOLUTION image_768res \
+  --VIDEO_HEIGHT 768 \
+  --VIDEO_WIDTH 768 \
+  --SAVE_PATH_GEN results/t2i
 ```
 
 ##### 视频编辑
 
-```cmd
-inference_lance.bat --TASK_NAME video_edit --MODEL_PATH downloads/Lance_3B_Video --RESOLUTION video_480p --SAVE_PATH_GEN results/video_edit
+```bash
+bash inference_lance.sh \
+  --TASK_NAME video_edit \
+  --MODEL_PATH downloads/Lance_3B_Video \
+  --RESOLUTION video_480p \
+  --SAVE_PATH_GEN results/video_edit
 ```
 
 ##### 图像编辑
 
-```cmd
-inference_lance.bat --TASK_NAME image_edit --MODEL_PATH downloads/Lance_3B --RESOLUTION image_768res --SAVE_PATH_GEN results/image_edit
+```bash
+bash inference_lance.sh \
+  --TASK_NAME image_edit \
+  --MODEL_PATH downloads/Lance_3B \
+  --RESOLUTION image_768res \
+  --SAVE_PATH_GEN results/image_edit
 ```
 
 ##### 视频理解
 
-```cmd
-inference_lance.bat --TASK_NAME x2t_video --MODEL_PATH downloads/Lance_3B_Video --RESOLUTION video_480p --NUM_FRAMES 50 --SAVE_PATH_GEN results/x2t_video
+```bash
+bash inference_lance.sh \
+  --TASK_NAME x2t_video \
+  --MODEL_PATH downloads/Lance_3B_Video \
+  --RESOLUTION video_480p \
+  --NUM_FRAMES 50 \
+  --SAVE_PATH_GEN results/x2t_video
 ```
 
 ##### 图像理解
 
-```cmd
-inference_lance.bat --TASK_NAME x2t_image --MODEL_PATH downloads/Lance_3B --RESOLUTION image_768res --SAVE_PATH_GEN results/x2t_image
+```bash
+bash inference_lance.sh \
+  --TASK_NAME x2t_image \
+  --MODEL_PATH downloads/Lance_3B \
+  --RESOLUTION image_768res \
+  --SAVE_PATH_GEN results/x2t_image
 ```
+
+<details>
+<summary><strong>展开任务和参数参考</strong></summary>
 
 #### 可用任务
 
@@ -322,11 +316,11 @@ inference_lance.bat --TASK_NAME x2t_image --MODEL_PATH downloads/Lance_3B --RESO
 
 #### 参数说明
 
-你可以通过命令行标志或编辑 `inference_lance.bat` 顶部的默认值来配置以下超参数：
+你可以在 `inference_lance.sh`（Linux）或 `inference_lance.bat`（Windows）顶部配置以下超参数：
 
 | 参数 | 默认值 | 说明 |
 | --- | --- | --- |
-| `MODEL_PATH` | `"downloads/Lance_3B_Video"` | 下载后的 Lance 模型权重路径（如 `Lance_3B` 或 `Lance_3B_Video`）。 |
+| `MODEL_PATH` | `"downloads/Lance_3B"` | 下载后的 Lance 模型权重路径（如 `Lance_3B` 或 `Lance_3B_Video`）。 |
 | `NUM_GPUS` | `1` | 用于推理的 GPU 数量。 |
 | `VALIDATION_NUM_TIMESTEPS` | `30` | 去噪步数（例如 30 或 50）。 |
 | `VALIDATION_TIMESTEP_SHIFT` | `3.5` | Flow matching 调度中的 timestep shift 参数。 |
@@ -336,37 +330,53 @@ inference_lance.bat --TASK_NAME x2t_image --MODEL_PATH downloads/Lance_3B --RESO
 | `VIDEO_HEIGHT` / `VIDEO_WIDTH`| `768` | 空间分辨率。*编辑任务不使用该参数（由输入图像/视频决定）。* |
 | `RESOLUTION` | `"video_480p"` | 基础分辨率预设（如 `image_768res` 或 `video_480p`）。 |
 
-### Gradio
+</details>
 
-#### 图像演示（t2i / image_edit / x2t_image）
+### 🖥️ Gradio
 
-```cmd
-run_gradio_image.bat
+你可以启动本地 Gradio demo，体验视频/图像生成、编辑和理解：
+
+```bash
+python lance_gradio.py --server-name 0.0.0.0 --server-port 7860
 ```
 
-或直接使用参数启动：
-```cmd
-.venv\Scripts\python.exe lance_gradio_image.py --gpus 0 --server-port 7861
-.venv\Scripts\python.exe lance_gradio_image.py --gpus 0 --server-port 7861 --fp8
-```
-
-#### 视频演示（t2v / v2t / video_edit）
+Windows 用户可使用提供的批处理脚本：
 
 ```cmd
-run_gradio_video.bat
+run_gradio.bat
 ```
 
-或直接使用参数启动：
+或直接指定参数启动：
+
 ```cmd
-.venv\Scripts\python.exe lance_gradio_video.py --gpus 0 --server-port 7860
-.venv\Scripts\python.exe lance_gradio_video.py --gpus 0 --server-port 7860 --fp8
+.venv\Scripts\python.exe lance_gradio.py --server-name 0.0.0.0 --server-port 7860 --gpus 0
 ```
 
-两个 Gradio 脚本均支持多 GPU 推理（`--gpus 0,1,2,3`）和 `--fp8` 模式以降低显存占用（约节省 50%）。
+#### Gradio 参数
+
+| 参数 | 默认值 | 说明 |
+| --- | --- | --- |
+| `--server-name` | `127.0.0.1` | 服务器绑定地址。使用 `0.0.0.0` 允许外部访问。 |
+| `--server-port` | `7860` | 服务器端口。 |
+| `--gpus` | `0` | GPU ID 列表（逗号分隔），如 `0,1,2,3` 用于多 GPU 推理。 |
+| `--queue-size` | 自动 | Gradio 请求队列最大长度。 |
+
+#### Windows 批处理脚本一览
+
+| 脚本 | 用途 |
+| --- | --- |
+| `setup_env.bat` | **完整环境配置。** 下载 `uv.exe`、创建 `.venv`、安装依赖、下载模型权重。 |
+| `lance_download_models.bat` | **交互式模型下载器。** 选择要下载或更新的模型组件。 |
+| `download_lance_3b.bat` | **仅下载 `Lance_3B`（图像模型）。** |
+| `inference_lance.bat` | **统一推理启动器。** 通过 `accelerate launch` 支持全部六种任务。 |
+| `run_gradio.bat` | **启动统一 Gradio demo。** 支持所有图像和视频任务（生成、编辑、理解）。 |
+| `run_gradio_image.bat` | *(旧版)* 仅启动图像 Gradio demo。 |
+| `run_gradio_video.bat` | *(旧版)* 仅启动视频 Gradio demo。 |
 
 ### 基准评测
 
-#### DPG-Bench 评测
+<details>
+<summary><strong>DPG-Bench 评测</strong></summary>
 
 <div align="center">
 <table align="center">
@@ -434,7 +444,10 @@ run_gradio_video.bat
 
 <p align="center"><em><sup>†</sup> 表示该方法在生成前使用 LLM rewriter 进行提示词改写。</em></p>
 
-#### GenEval 评测
+</details>
+
+<details>
+<summary><strong>GenEval 评测</strong></summary>
 
 <div align="center">
 <table align="center">
@@ -506,7 +519,10 @@ run_gradio_video.bat
 
 <p align="center"><em><sup>†</sup> 表示该方法在生成前使用 LLM rewriter 进行提示词改写。</em></p>
 
-#### GEdit-Bench 评测
+</details>
+
+<details>
+<summary><strong>GEdit-Bench 评测</strong></summary>
 
 <div align="center">
 <table align="center">
@@ -566,7 +582,10 @@ run_gradio_video.bat
 </table>
 </div>
 
-#### VBench 评测（视频生成）
+</details>
+
+<details>
+<summary><strong>VBench 评测（视频生成）</strong></summary>
 
 <div align="center">
 <table align="center">
@@ -639,6 +658,8 @@ run_gradio_video.bat
 </table>
 </div>
 
+</details>
+
 #### 运行基准评测
 
 `benchmarks/` 目录下提供了可直接运行的基准评测脚本：
@@ -653,7 +674,7 @@ run_gradio_video.bat
 
 ## 📄 许可证
 
-Copyright 2025 Bytedance Ltd. and/or its affiliates.
+Copyright 2025 ByteDance Ltd. and/or its affiliates.
 
 ## 🙏 致谢
 

@@ -27,25 +27,49 @@
     <a href="https://lance-project.github.io/" style="text-decoration: none; margin: 0 8px;"><img src="https://img.shields.io/badge/Homepage-Lance-blue?style=flat" alt="Homepage"></a>
     <a href="http://arxiv.org/abs/2605.18678" style="text-decoration: none; margin: 0 8px;"><img src="https://img.shields.io/badge/Paper-arXiv-red?style=flat&logo=arxiv" alt="arXiv"></a>
     <a href="https://huggingface.co/bytedance-research/Lance" style="text-decoration: none; margin: 0 8px;"><img src="https://img.shields.io/badge/Model-HuggingFace-yellow?style=flat&logo=huggingface" alt="Model"></a>
+    <a href="https://huggingface.co/spaces/bytedance-research/Lance" style="text-decoration: none; margin: 0 8px;"><img src="https://img.shields.io/badge/Demo-HuggingFace-40bfe6?style=flat&logo=huggingface" alt="Demo"></a>
     <br>
     English | <a href="./README_zh.md"><ins>简体中文</ins></a> | <a href="./README_ru.md"><ins>Русский</ins></a>
   </p>
 </div>
 
+> **Note:** Lance is a research project rather than a polished product model. The released checkpoint was trained with up to 128 A100 GPUs, with training conducted up to 768x768 image generation and 480p, 12 FPS video generation. Our goal is to share a research artifact for studying unified image/video understanding, generation, and editing under a relatively small model and limited compute budget. Output quality may vary across prompts, resolutions, duration, motion complexity, and editing scenarios, and we see further opportunities to improve the post-training recipe. We appreciate constructive feedback from the community as we continue improving the project.
+
+## 🔥 Updates
+
+- **`2026/05/26`**: 🎨 The Gradio interface now supports image and video generation, editing, and understanding. [Try it out](assets/docs/changelog/2026-05-26.md)!
+- **`2026/05/25`**: ✨ The [Hugging Face Space](https://huggingface.co/spaces/bytedance-research/Lance) is now live, thanks to the HF team!
+- **`2026/05/19`**: 🤗 The technical report is now available on [arXiv](http://arxiv.org/abs/2605.18678).
+- **`2026/05/18`**: 🔥 We launched the [project homepage](https://lance-project.github.io/) and released the initial inference code and model weights on [GitHub](https://github.com/bytedance/Lance/) and [Hugging Face](https://huggingface.co/bytedance-research/Lance).
+
 ## 🌟 Highlights
 
 **Lance** is a 3B native unified multimodal model that supports **image and video understanding, generation, and editing** within a single framework.
 
-- **Efficient at 3B scale.** With only **3B active parameters**, Lance delivers strong performance across image generation, image editing, and video generation benchmarks.
-- **Trained from scratch.** Lance is built with a staged multi-task recipe and trained entirely from scratch (except for the ViT and VAE encoders; the transformer backbone is trained entirely from scratch) within a **128-A100-GPU** budget.
+- **Efficient at 3B scale.** With only **3B active parameters**, Lance achieves competitive performance across image generation, image editing, and video generation benchmarks.
+- **Training from scratch.** Lance is trained from scratch with a staged multi-task recipe and within a budget of **up to 128 A100 GPUs**.
+
+We are actively updating and improving this repository. If you find any bugs or have suggestions, please feel free to open an issue or submit a pull request (PR) 💖.
 
 <div align="center">
   <img src="assets/benchmarks/benchmark-overview.png" alt="Lance benchmark overview across image generation, image editing, video generation, and video understanding" width="980">
 </div>
 
+## 📅 Roadmap
+
+- [ ] Release the fine-tuning code.
+- [ ] Add support for image-to-video generation code.
+
 ## 🎨 Demo
 
-### Text-to-Video
+<details>
+<summary><strong>Show demo results</strong></summary>
+
+<div align="center">
+  <strong>🔥 We recommend visiting our <a href="https://lance-project.github.io/">homepage</a> for more visual results. 🔥</strong>
+</div>
+
+<h3 align="center">Text-to-Video</h3>
 
 <table align="center">
   <tr>
@@ -62,7 +86,7 @@
   </tr>
 </table>
 
-### Video Editing
+<h3 align="center">Video Editing</h3>
 
 <table align="center">
   <tr>
@@ -79,7 +103,7 @@
   </tr>
 </table>
 
-### Multi-turn Consistency Editing
+<h3 align="center">Multi-turn Consistency Editing</h3>
 
 <div align="center">
   <a href="assets/multi-turn-editing/videos/multi-turn-editing-demo-01.mp4">
@@ -87,7 +111,7 @@
   </a>
 </div>
 
-### Intelligent Video Generation
+<h3 align="center">Intelligent Video Generation</h3>
 
 <table align="center">
   <tr>
@@ -98,121 +122,73 @@
   </tr>
 </table>
 
-### Video Understanding
-
-<div align="center">
-  <table align="center">
-    <tr>
-      <td align="left" valign="top" width="33%">
-        <a href="assets/video-understanding/videos/video-understanding-vqa-01.mp4">
-          <img src="assets/video-understanding/previews/video-understanding-vqa-01.gif" width="100%">
-        </a>
-        <p><strong>Question:</strong> How many times did the person launch objects on the table? Options: (A) 3 (B) 2 (C) 4</p>
-        <p><strong>Response:</strong> (A) 3</p>
-      </td>
-      <td align="left" valign="top" width="33%">
-        <a href="assets/video-understanding/videos/video-understanding-vqa-02.mp4">
-          <img src="assets/video-understanding/previews/video-understanding-vqa-02.gif" width="100%">
-        </a>
-        <p><strong>Question:</strong> The person makes sets of repeated actions. How many distinct repeated actions did the person do? Options: (A) 2 (B) 3 (C) 4</p>
-        <p><strong>Response:</strong> (A) 2</p>
-      </td>
-      <td align="left" valign="top" width="33%">
-        <a href="assets/video-understanding/videos/video-understanding-vqa-03.mp4">
-          <img src="assets/video-understanding/previews/video-understanding-vqa-03.gif" width="100%">
-        </a>
-        <p><strong>Question:</strong> In which direction does the purple sphere move in the video? Options: (A) Down and to the right. (B) Up and to the left. (C) Up and to the right. (D) The object is stationary.</p>
-        <p><strong>Response:</strong> (A) Down and to the right.</p>
-      </td>
-    </tr>
-    <tr>
-      <td align="left" valign="top" width="33%">
-        <a href="assets/video-understanding/videos/video-understanding-vqa-04.mp4">
-          <img src="assets/video-understanding/previews/video-understanding-vqa-04.gif" width="100%">
-        </a>
-        <p><strong>Question:</strong> What is the unrealistic phenomenon displayed in the video? Options: (A) The man can manipulate time via phone. (B) Man grabs an object through a phone screen. (C) Chocolate transforms into different objects. (D) Visible means of propulsion enables flight.</p>
-        <p><strong>Response:</strong> (B) Man grabs an object through a phone screen.</p>
-      </td>
-      <td align="left" valign="top" width="33%">
-        <a href="assets/video-understanding/videos/video-understanding-caption-short-01.mp4">
-          <img src="assets/video-understanding/previews/video-understanding-caption-short-01.gif" width="100%">
-        </a>
-        <p><strong>Question:</strong> Offer a succinct account of the culinary process shown in this video.</p>
-        <p><strong>Response:</strong> Add tomato puree and mix it well with chicken pieces.</p>
-      </td>
-      <td align="left" valign="top" width="33%">
-        <a href="assets/video-understanding/videos/video-understanding-caption-long-01.mp4">
-          <img src="assets/video-understanding/previews/video-understanding-caption-long-01.gif" width="100%">
-        </a>
-        <p><strong>Question:</strong> Provide a detailed description of the given video, capturing its key moments.</p>
-        <p><strong>Response:</strong> In a sunlit meadow, a small tortoiseshell butterfly rests on a purple flower. A bee, with black and yellow stripes, lands on the same flower. The butterfly flaps its wings gently, while the bee busies itself, collecting nectar. The flower sways slightly in the breeze. The butterfly then takes off, and the bee follows, both heading to the next flower. The scene is a vivid display of insect interaction in a natural setting, with the colors of the butterfly and the bee contrasting against the green background of the meadow. The video captures this peaceful moment in a short 6-second duration.</p>
-      </td>
-    </tr>
-  </table>
-</div>
-
-### Text-to-Image Generation
-
-<div align="center">
-  <img src="assets/text-to-image/text-to-image-overview.webp" alt="Lance text-to-image generation examples" width="100%">
-</div>
-
-### Image Editing
-
-<div align="center">
-  <img src="assets/image-editing/image-editing-overview.webp" alt="Lance image editing examples" width="100%">
-</div>
-
-### Image Understanding
-
-<div align="center">
-  <table align="center">
-    <tr>
-      <td align="left" valign="top" width="33%">
-        <img src="assets/image-understanding/cases/image-understanding-case-01.png" alt="Pie chart reasoning case" width="100%">
-        <p><strong>Question:</strong> Is the largest segment greater than sum of all the other segments?</p>
-        <p><strong>Response:</strong> Yes, the largest segment in the pie chart is the blue one, which is the most populous segment.</p>
-      </td>
-      <td align="left" valign="top" width="33%">
-        <img src="assets/image-understanding/cases/image-understanding-case-02.png" alt="Survey chart about border security priorities" width="100%">
-        <p><strong>Question:</strong> What percentage of respondents want better border security?</p>
-        <p><strong>Response:</strong> 29%</p>
-      </td>
-      <td align="left" valign="top" width="33%">
-        <img src="assets/image-understanding/cases/image-understanding-case-03.png" alt="License plate recognition case" width="100%">
-        <p><strong>Question:</strong> What is the license plate number of the car?</p>
-        <p><strong>Response:</strong> The license plate number of the car is BX62 BFY.</p>
-      </td>
-    </tr>
-    <tr>
-      <td align="left" valign="top" width="33%">
-        <img src="assets/image-understanding/cases/image-understanding-case-04.png" alt="Market research chart reasoning case" width="100%">
-        <p><strong>Question:</strong> According to the data from the proprietary market research, how much amount was spent on the promotional meetings and events during 1998?</p>
-        <p><strong>Response:</strong> According to the data from the proprietary market research, the total amount spent on the promotional meetings and events during 1998 was approximately $1.3 billion.</p>
-      </td>
-      <td align="left" valign="top" width="33%">
-        <img src="assets/image-understanding/cases/image-understanding-case-05.png" alt="Colosseum description case" width="100%">
-        <p><strong>Question:</strong> What is the appearance of the Colosseum in Rome, Italy?</p>
-        <p><strong>Response:</strong> The Colosseum in Rome, Italy is a magnificent ancient amphitheater made of stone and concrete. It is characterized by its large, arched openings and its semi-circular shape. The Colosseum has been partially restored, and its original color has faded, but the architectural details, like the columns and the semi-circular arches, are still visible. The lighting in the image highlights the grandeur and historical significance of the Colosseum, making it stand out against the backdrop of the evening sky.</p>
-      </td>
-      <td align="left" valign="top" width="33%">
-        <img src="assets/image-understanding/cases/image-understanding-case-06.png" alt="Total solar eclipse case" width="100%">
-        <p><strong>Question:</strong> How does a total solar eclipse look like from Earth?</p>
-        <p><strong>Response:</strong> A total solar eclipse looks like a dark circle with a bright, white outer edge. This is a result of the Earth's rotation and the Earth's shadow, which partially obscures the sun's light. The bright white edge of the eclipse is caused by the sun's high energy and its interaction with the Earth's atmosphere, while the dark part of the eclipse is due to the Earth's shadow and the surrounding air currents. The solar eclipse's shape, with its bright white edge and dark center, is similar to the shape of a full moon or a dark disk. It is a natural phenomenon that occurs in the atmosphere of the Earth and is an important part of the solar system.</p>
-      </td>
-    </tr>
-  </table>
-</div>
+</details>
 
 ## 🚀 Installation
 
 ### Recommended Environment
 
-- **OS:** Windows 10/11 (64-bit)
-- **Software:** Python 3.11 (pinned automatically by `setup_env.bat`), CUDA 12.8+ (required)
+- **OS:** Linux (recommended) or Windows 10/11 (64-bit)
+- **Software:** Python 3.10+, CUDA 12.4+ (required)
 - **Hardware:** A GPU with at least 40GB VRAM is required for inference
 
+We have tested the following dependency combinations on NVIDIA A100:
+
+- PyTorch 2.8.0 + cu126 + flash-attn 2.8.3
+- PyTorch 2.5.1 + cu124 + flash-attn 2.6.3
+
+The default installation commands use the PyTorch 2.8.0 + cu126 setup. For other GPU models, please choose and validate a PyTorch build and a matching `flash-attn` version according to your driver, CUDA runtime, Python version, and GPU architecture.
+
 ### Installation Steps
+
+First, clone the repository:
+
+```bash
+git clone https://github.com/bytedance/Lance.git
+cd Lance
+```
+
+Then, set up the environment:
+
+```bash
+conda create -n Lance python=3.11 -y
+conda activate Lance
+pip install torch==2.8.0 torchvision==0.23.0 torchaudio==2.8.0 --index-url https://download.pytorch.org/whl/cu126
+pip install -r requirements.txt
+pip install flash-attn==2.8.3 --no-build-isolation
+```
+
+> **Note:** If installing `flash-attn` from source fails, you can install a prebuilt wheel instead. The wheelhouse below is from a third-party repository and is provided for **reference only**; please verify that any wheel you install matches your Python, PyTorch and CUDA versions.
+
+> ```bash
+> pip install --no-cache-dir --no-deps --force-reinstall \
+> "https://huggingface.co/strangertoolshf/flash_attention_2_wheelhouse/resolve/main/wheelhouse-flash_attn-2.8.3/linux_x86_64/torch2.8/cu12/abiTRUE/cp311/flash_attn-2.8.3+cu12torch2.8cxx11abiTRUE-cp311-cp311-linux_x86_64.whl"
+> ```
+
+
+Then, download the model weights from [Lance-3B on Hugging Face](https://huggingface.co/bytedance-research/Lance) and place them in the `downloads/` directory:
+
+```bash
+from huggingface_hub import snapshot_download
+
+save_dir = "./downloads/"
+repo_id = "bytedance-research/Lance" 
+cache_dir = save_dir + "/cache"
+
+snapshot_download(cache_dir=cache_dir,
+  local_dir=save_dir,
+  repo_id=repo_id,
+  local_dir_use_symlinks=False,
+  resume_download=True,
+  allow_patterns=["*.json", "*.safetensors", "*.bin", "*.py", "*.md", "*.txt","*.pth",],
+)
+```
+
+
+#### Windows (Quick Start)
+
+On Windows, use `setup_env.bat` for a one-click setup:
+
 ```cmd
 setup_env.bat
 ```
@@ -220,10 +196,9 @@ setup_env.bat
 This script will:
 1. Download `uv.exe` (Python package manager)
 2. Pin Python 3.11 and create a `.venv` virtual environment
-3. Install all dependencies from `requirements.txt` (filtering out Linux-only packages)
-4. Install Windows-compatible wheels for `triton` and `flash-attn`
-5. Install `torch 2.7.0+cu128`, `transformers`, `diffusers`, `gradio`
-6. Download model weights (`Lance_3B_Video`, `Qwen2.5-VL-ViT`, `Wan2.2_VAE`) from HuggingFace into `downloads/`
+3. Install all dependencies (including Windows-compatible `triton` and `flash-attn` wheels)
+4. Install `torch 2.7.0+cu128`, `transformers`, `diffusers`, `gradio`
+5. Download model weights from HuggingFace into `downloads/`
 
 Optional flags:
 ```cmd
@@ -231,79 +206,97 @@ setup_env.bat --uv-tag 0.11.15    :: specify uv version
 setup_env.bat --clear-venv        :: delete .venv before recreating
 ```
 
-### Download Model Weights
-
-If you skipped the automatic download during setup, or need additional model variants, use the scripts below.
-
-## 📥 Batch Scripts Reference
-
-This is a **Windows-native fork** of Lance. All shell scripts (`.sh`) have been replaced with `.bat` equivalents:
-
-| Script | Purpose |
-| --- | --- |
-| `setup_env.bat` | **Full environment setup.** Downloads `uv.exe`, creates a `.venv`, installs all Python dependencies (including Windows-compatible `triton` and `flash-attn` wheels), and downloads model weights. This is the first script to run. |
-| `lance_download_models.bat` | **Interactive model downloader.** Launches `lance_download_models.py` — an interactive menu that lets you select which model components to download or update (`Lance_3B_Video`, `Lance_3B`, `Qwen2.5-VL-ViT`, `Wan2.2_VAE`, or combined sets). Supports resume and shows download progress. |
-| `download_lance_3b.bat` | **Download `Lance_3B` (image model) only.** A quick one-shot script that downloads just the `Lance_3B/` weights from HuggingFace into `downloads/`. Skips if already present. |
-| `inference_lance.bat` | **Unified inference launcher.** Runs `inference_lance.py` via `accelerate launch`. Supports all six tasks (`t2i`, `t2v`, `image_edit`, `video_edit`, `x2t_image`, `x2t_video`). Parameters can be configured via environment variables or command-line flags (see below). |
-| `run_gradio_image.bat` | **Launch the image Gradio demo.** Starts `lance_gradio_image.py` — a web UI for `t2i` (Text-to-Image), `image_edit` (Image Editing), and `x2t_image` (Image Understanding). Prompts for normal or `--fp8` mode at launch. |
-| `run_gradio_video.bat` | **Launch the video Gradio demo.** Starts `lance_gradio_video.py` — a web UI for `t2v` (Text-to-Video), `v2t` (Video Understanding), and `video_edit` (Video Editing). Prompts for normal or `--fp8` mode at launch. |
 
 ## 📚 Usage
 
-
 ### Inference
 
-We provide a unified command-line interface for all generation / editing / understanding tasks:
+#### Basic Usage
 
-#### Option 1: Configure and Run the Unified Script
+```bash
+bash inference_lance.sh
+```
+
+Or on Windows:
 
 ```cmd
 inference_lance.bat
 ```
 
-- Before running, you can configure the inference parameters via environment variables or edit the defaults at the top of `inference_lance.bat`.
+- Before running, please configure the inference parameters at the top of `inference_lance.sh` (Linux) or `inference_lance.bat` (Windows).
 - **Supported tasks:** `t2i`, `t2v`, `image_edit`, `video_edit`, `x2t_image`, and `x2t_video`. You can modify `TASK_DEFAULT_CONFIGS` in `inference_lance.py` to customize the default data samples for each task.
 - **Note:** For all tasks, we recommend following the `prompt` format used in the provided examples when writing input prompts, as this typically leads to better generation quality.
 
-#### Option 2: Pass Parameters via Command Line
+#### Task Examples
 
-We provide task-specific one-click commands for different generation, editing, and understanding tasks.
+##### Text-to-Video
 
-##### Text-to-Video Generation
-
-```cmd
-inference_lance.bat --TASK_NAME t2v --MODEL_PATH downloads/Lance_3B_Video --RESOLUTION video_480p --NUM_FRAMES 121 --VIDEO_HEIGHT 480 --VIDEO_WIDTH 848 --SAVE_PATH_GEN results/t2v
+```bash
+bash inference_lance.sh \
+  --TASK_NAME t2v \
+  --MODEL_PATH downloads/Lance_3B_Video \
+  --RESOLUTION video_480p \
+  --NUM_FRAMES 121 \
+  --VIDEO_HEIGHT 480 \
+  --VIDEO_WIDTH 848 \
+  --SAVE_PATH_GEN results/t2v
 ```
 
-##### Text-to-Image Generation
+##### Text-to-Image
 
-```cmd
-inference_lance.bat --TASK_NAME t2i --MODEL_PATH downloads/Lance_3B --RESOLUTION image_768res --VIDEO_HEIGHT 768 --VIDEO_WIDTH 768 --SAVE_PATH_GEN results/t2i
+```bash
+bash inference_lance.sh \
+  --TASK_NAME t2i \
+  --MODEL_PATH downloads/Lance_3B \
+  --RESOLUTION image_768res \
+  --VIDEO_HEIGHT 768 \
+  --VIDEO_WIDTH 768 \
+  --SAVE_PATH_GEN results/t2i
 ```
 
 ##### Video Editing
 
-```cmd
-inference_lance.bat --TASK_NAME video_edit --MODEL_PATH downloads/Lance_3B_Video --RESOLUTION video_480p --SAVE_PATH_GEN results/video_edit
+```bash
+bash inference_lance.sh \
+  --TASK_NAME video_edit \
+  --MODEL_PATH downloads/Lance_3B_Video \
+  --RESOLUTION video_480p \
+  --SAVE_PATH_GEN results/video_edit
 ```
 
 ##### Image Editing
 
-```cmd
-inference_lance.bat --TASK_NAME image_edit --MODEL_PATH downloads/Lance_3B --RESOLUTION image_768res --SAVE_PATH_GEN results/image_edit
+```bash
+bash inference_lance.sh \
+  --TASK_NAME image_edit \
+  --MODEL_PATH downloads/Lance_3B \
+  --RESOLUTION image_768res \
+  --SAVE_PATH_GEN results/image_edit
 ```
 
 ##### Video Understanding
 
-```cmd
-inference_lance.bat --TASK_NAME x2t_video --MODEL_PATH downloads/Lance_3B_Video --RESOLUTION video_480p --NUM_FRAMES 50 --SAVE_PATH_GEN results/x2t_video
+```bash
+bash inference_lance.sh \
+  --TASK_NAME x2t_video \
+  --MODEL_PATH downloads/Lance_3B_Video \
+  --RESOLUTION video_480p \
+  --NUM_FRAMES 50 \
+  --SAVE_PATH_GEN results/x2t_video
 ```
 
 ##### Image Understanding
 
-```cmd
-inference_lance.bat --TASK_NAME x2t_image --MODEL_PATH downloads/Lance_3B --RESOLUTION image_768res --SAVE_PATH_GEN results/x2t_image
+```bash
+bash inference_lance.sh \
+  --TASK_NAME x2t_image \
+  --MODEL_PATH downloads/Lance_3B \
+  --RESOLUTION image_768res \
+  --SAVE_PATH_GEN results/x2t_image
 ```
+
+<details>
+<summary><strong>Show task and parameter reference</strong></summary>
 
 #### Available Tasks
 
@@ -323,11 +316,11 @@ For understanding examples:
 
 #### Parameters
 
-You can configure the following hyperparameters via command-line flags or by editing the defaults at the top of `inference_lance.bat`:
+You can configure the following hyperparameters at the top of the `inference_lance.sh` script (or `inference_lance.bat` on Windows):
 
 | Parameter | Default Value | Description |
 | --- | --- | --- |
-| `MODEL_PATH` | `"downloads/Lance_3B_Video"` | Path to the downloaded Lance model weights  (`Lance_3B` or `Lance_3B_Video`). |
+| `MODEL_PATH` | `"downloads/Lance_3B"` | Path to the downloaded Lance model weights  (`Lance_3B` or `Lance_3B_Video`). |
 | `NUM_GPUS` | `1` | Number of GPUs to use for inference. |
 | `VALIDATION_NUM_TIMESTEPS` | `30` | Number of denoising steps (e.g., 30 or 50). |
 | `VALIDATION_TIMESTEP_SHIFT` | `3.5` | Timestep shift parameter for flow matching scheduling. |
@@ -337,37 +330,53 @@ You can configure the following hyperparameters via command-line flags or by edi
 | `VIDEO_HEIGHT` / `VIDEO_WIDTH`| `768` | Spatial resolution. *Unused for editing tasks (determined by input image/video).* |
 | `RESOLUTION` | `"video_480p"` | Base resolution preset (`image_768res` or `video_480p`). |
 
-### Gradio
+</details>
 
-#### Image Demo (t2i / image_edit / x2t_image)
+### 🖥️ Gradio
 
-```cmd
-run_gradio_image.bat
+You can launch the local Gradio demo for video/image generation, editing, and understanding:
+
+```bash
+python lance_gradio.py --server-name 0.0.0.0 --server-port 7860
 ```
 
-Or directly with options:
-```cmd
-.venv\Scripts\python.exe lance_gradio_image.py --gpus 0 --server-port 7861
-.venv\Scripts\python.exe lance_gradio_image.py --gpus 0 --server-port 7861 --fp8
-```
-
-#### Video Demo (t2v / v2t / video_edit)
+On Windows, use the provided batch script:
 
 ```cmd
-run_gradio_video.bat
+run_gradio.bat
 ```
 
-Or directly with options:
+Or directly with custom parameters:
+
 ```cmd
-.venv\Scripts\python.exe lance_gradio_video.py --gpus 0 --server-port 7860
-.venv\Scripts\python.exe lance_gradio_video.py --gpus 0 --server-port 7860 --fp8
+.venv\Scripts\python.exe lance_gradio.py --server-name 0.0.0.0 --server-port 7860 --gpus 0
 ```
 
-Both Gradio scripts support multi-GPU inference (`--gpus 0,1,2,3`) and `--fp8` for reduced VRAM usage (~50% savings).
+#### Gradio Parameters
+
+| Parameter | Default | Description |
+| --- | --- | --- |
+| `--server-name` | `127.0.0.1` | Server bind address. Use `0.0.0.0` to allow external access. |
+| `--server-port` | `7860` | Server port. |
+| `--gpus` | `0` | Comma-separated GPU IDs, e.g. `0,1,2,3` for multi-GPU inference. |
+| `--queue-size` | auto | Maximum number of queued Gradio requests. |
+
+#### Windows Batch Scripts Reference
+
+| Script | Purpose |
+| --- | --- |
+| `setup_env.bat` | **Full environment setup.** Downloads `uv.exe`, creates `.venv`, installs dependencies, downloads model weights. |
+| `lance_download_models.bat` | **Interactive model downloader.** Select which model components to download or update. |
+| `download_lance_3b.bat` | **Download `Lance_3B` (image model) only.** |
+| `inference_lance.bat` | **Unified inference launcher.** Supports all six tasks via `accelerate launch`. |
+| `run_gradio.bat` | **Launch the unified Gradio demo.** Web UI for all image and video tasks (generation, editing, understanding). |
+| `run_gradio_image.bat` | *(Legacy)* Launch the image-only Gradio demo. |
+| `run_gradio_video.bat` | *(Legacy)* Launch the video-only Gradio demo. |
 
 ### Benchmarks
 
-#### DPG-Bench Evaluation
+<details>
+<summary><strong>DPG-Bench Evaluation</strong></summary>
 
 <div align="center">
 <table align="center">
@@ -435,7 +444,10 @@ Both Gradio scripts support multi-GPU inference (`--gpus 0,1,2,3`) and `--fp8` f
 
 <p align="center"><em><sup>†</sup> indicates methods that use LLM rewriters for prompt rewriting before generation.</em></p>
 
-#### GenEval Evaluation
+</details>
+
+<details>
+<summary><strong>GenEval Evaluation</strong></summary>
 
 <div align="center">
 <table align="center">
@@ -507,7 +519,10 @@ Both Gradio scripts support multi-GPU inference (`--gpus 0,1,2,3`) and `--fp8` f
 
 <p align="center"><em><sup>†</sup> indicates methods that use LLM rewriters for prompt rewriting before generation.</em></p>
 
-#### GEdit-Bench Evaluation
+</details>
+
+<details>
+<summary><strong>GEdit-Bench Evaluation</strong></summary>
 
 <div align="center">
 <table align="center">
@@ -567,7 +582,10 @@ Both Gradio scripts support multi-GPU inference (`--gpus 0,1,2,3`) and `--fp8` f
 </table>
 </div>
 
-#### VBench Evaluation (Video Generation)
+</details>
+
+<details>
+<summary><strong>VBench Evaluation (Video Generation)</strong></summary>
 
 <div align="center">
 <table align="center">
@@ -640,6 +658,8 @@ Both Gradio scripts support multi-GPU inference (`--gpus 0,1,2,3`) and `--fp8` f
 </table>
 </div>
 
+</details>
+
 #### Running Benchmarks
 
 Ready-to-run benchmark scripts are provided under `benchmarks/`:
@@ -654,7 +674,7 @@ Ready-to-run benchmark scripts are provided under `benchmarks/`:
 
 ## 📄 License
 
-Copyright 2025 Bytedance Ltd. and/or its affiliates.
+Copyright 2025 ByteDance Ltd. and/or its affiliates.
 
 ## 🙏 Acknowledgements
 
