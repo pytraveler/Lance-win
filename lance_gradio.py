@@ -34,6 +34,60 @@ from inference_lance import (
     save_prompt_results,
     validate_on_fixed_batch,
 )
+
+
+def convert_weights_to_fp8(model: torch.nn.Module, device: int) -> None:
+    """Convert all ``nn.Linear`` weights to *fp8_e4m3fn* to halve VRAM usage.
+
+    Weight tensors are stored on-GPU in ``torch.float8_e4m3fn`` (1 byte/value
+    instead of 2 bytes/value for bfloat16).  Forward hooks handle on-the-fly
+    dequantisation back to the original dtype so that the rest of the inference
+    pipeline (autocast, F.linear, etc.) continues to work unchanged.
+    """
+    import torch.nn as nn
+
+    mem_before = torch.cuda.memory_allocated(device) / (1024 ** 3)
+    converted = 0
+
+    for module in model.modules():
+        if not isinstance(module, nn.Linear) or module.weight is None:
+            continue
+
+        original_dtype = module.weight.dtype
+        if original_dtype == torch.float8_e4m3fn:
+            continue
+
+        module.weight.data = module.weight.data.to(torch.float8_e4m3fn)
+        module.weight.requires_grad_(False)
+
+        def _make_hooks(orig_dtype):
+            def _pre_forward(mod, args):
+                mod._fp8_weight_storage = mod.weight.data
+                mod.weight.data = mod.weight.data.to(orig_dtype)
+                return args
+
+            def _post_forward(mod, args, output):
+                if hasattr(mod, "_fp8_weight_storage"):
+                    mod.weight.data = mod._fp8_weight_storage
+                    del mod._fp8_weight_storage
+                return output
+
+            return _pre_forward, _post_forward
+
+        pre_hook, post_hook = _make_hooks(original_dtype)
+        module.register_forward_pre_hook(pre_hook)
+        module.register_forward_hook(post_hook)
+        converted += 1
+
+    clean_memory()
+
+    mem_after = torch.cuda.memory_allocated(device) / (1024 ** 3)
+    saved = mem_before - mem_after
+    print(
+        f"[fp8][gpu:{device}] Converted {converted} Linear layer(s) to fp8_e4m3fn. "
+        f"VRAM: {mem_before:.2f} GB -> {mem_after:.2f} GB (saved ~{saved:.2f} GB)",
+        flush=True,
+    )
 from modeling.lance import Lance, LanceConfig, Qwen2ForCausalLM
 from modeling.qwen2 import Qwen2Tokenizer
 from modeling.qwen2.modeling_qwen2 import Qwen2Config
@@ -41,12 +95,13 @@ from modeling.vae.wan.model import WanVideoVAE
 from modeling.vit.qwen2_5_vl_vit import Qwen2_5_VisionTransformerPretrainedModel
 
 class LanceT2VV2TPipeline:
-    def __init__(self, device_id: int, model_variant: str = MODEL_VARIANT_VIDEO) -> None:
+    def __init__(self, device_id: int, model_variant: str = MODEL_VARIANT_VIDEO, use_fp8: bool = False) -> None:
         self._init_lock = threading.Lock()
         self._generate_lock = threading.Lock()
         self.initialized = False
         self.device = device_id
         self.model_variant = normalize_model_variant(model_variant)
+        self.use_fp8 = use_fp8
         self.logger = get_logger(f"lance_{self.model_variant}_gpu{device_id}")
 
         self.model: Optional[Lance] = None
@@ -254,6 +309,12 @@ class LanceT2VV2TPipeline:
             if vae_model is not None and hasattr(vae_model, "eval"):
                 vae_model.eval()
 
+            if self.use_fp8:
+                stage_start = time.perf_counter()
+                print(f"[startup][gpu:{self.device}] Converting weights to fp8_e4m3fn ...", flush=True)
+                convert_weights_to_fp8(model, self.device)
+                self._log_stage("fp8 conversion", stage_start)
+
             self.model = model
             self.vae_model = vae_model
             self.vae_config = vae_config
@@ -430,6 +491,7 @@ class LanceT2VV2TPipeline:
                     save_source_video=False,
                     save_path_gen=request_inference_args.save_path_gen,
                     save_path_gt="",
+                    skip_dtype_cast=self.use_fp8,
                 )
                 elapsed = time.perf_counter() - generate_start
                 save_prompt_results(request_inference_args.prompt_data_dict, request_inference_args.save_path_gen, self.logger)
@@ -581,13 +643,14 @@ class LanceT2VV2TPipeline:
                 return None, None, "", status
 
 class PipelinePool:
-    def __init__(self, gpu_ids: list[int], model_variant: str = MODEL_VARIANT_VIDEO) -> None:
+    def __init__(self, gpu_ids: list[int], model_variant: str = MODEL_VARIANT_VIDEO, use_fp8: bool = False) -> None:
         if not gpu_ids:
             raise ValueError("At least one GPU must be configured.")
         self.gpu_ids = gpu_ids
         self.model_variant = normalize_model_variant(model_variant)
+        self.use_fp8 = use_fp8
         self.pipelines = [
-            LanceT2VV2TPipeline(device_id=gpu_id, model_variant=self.model_variant)
+            LanceT2VV2TPipeline(device_id=gpu_id, model_variant=self.model_variant, use_fp8=use_fp8)
             for gpu_id in gpu_ids
         ]
         self._available = deque(self.pipelines)
@@ -675,6 +738,7 @@ class PipelinePool:
 
 PIPELINE_POOLS: dict[str, PipelinePool] = {}
 ACTIVE_POOL_LOCK = threading.Lock()
+USE_FP8: bool = False
 
 def get_task_model_variant(task: str) -> str:
     internal_task = normalize_task(task)
@@ -691,7 +755,7 @@ def get_or_create_pipeline_pool(model_variant: str) -> PipelinePool:
     with ACTIVE_POOL_LOCK:
         pool = PIPELINE_POOLS.get(normalized_variant)
         if pool is None:
-            pool = PipelinePool(gpu_ids, model_variant=normalized_variant)
+            pool = PipelinePool(gpu_ids, model_variant=normalized_variant, use_fp8=USE_FP8)
             PIPELINE_POOLS[normalized_variant] = pool
         return pool
 
@@ -791,6 +855,7 @@ def run_task_gpu(
 if __name__ == "__main__":
     args = parse_args()
     os.environ["LANCE_GPUS"] = args.gpus
+    USE_FP8 = args.fp8
     print(
         "[startup] Local-only mode. UI will launch first; model weights are loaded from local paths during inference.",
         flush=True,

@@ -360,18 +360,18 @@ Or directly with custom parameters:
 | `--server-port` | `7860` | Server port. |
 | `--gpus` | `0` | Comma-separated GPU IDs, e.g. `0,1,2,3` for multi-GPU inference. |
 | `--queue-size` | auto | Maximum number of queued Gradio requests. |
+| `--fp8` | `False` | Convert model weights to fp8_e4m3fn to reduce VRAM usage (~50% savings). |
 
 #### Windows Batch Scripts Reference
 
 | Script | Purpose |
 | --- | --- |
 | `setup_env.bat` | **Full environment setup.** Downloads `uv.exe`, creates `.venv`, installs dependencies, downloads model weights. |
+| `setup_env_torch28cuda126.bat` | **Alternative environment setup.** Uses PyTorch 2.8.0 + CUDA 12.6 with `requirements_pytorch126.txt`. |
 | `lance_download_models.bat` | **Interactive model downloader.** Select which model components to download or update. |
-| `download_lance_3b.bat` | **Download `Lance_3B` (image model) only.** |
+| `download_lance_3b.bat` | **Interactive model downloader.** Menu for downloading combined sets or individual components (`Lance_3B_Video`, `Lance_3B`, `Qwen2.5-VL-ViT`, `Wan2.2_VAE`). |
 | `inference_lance.bat` | **Unified inference launcher.** Supports all six tasks via `accelerate launch`. |
-| `run_gradio.bat` | **Launch the unified Gradio demo.** Web UI for all image and video tasks (generation, editing, understanding). |
-| `run_gradio_image.bat` | *(Legacy)* Launch the image-only Gradio demo. |
-| `run_gradio_video.bat` | *(Legacy)* Launch the video-only Gradio demo. |
+| `run_gradio.bat` | **Launch the unified Gradio demo.** Interactive launcher with Normal, Custom parameters, and `--fp8` VRAM-saver modes. |
 
 ### Benchmarks
 

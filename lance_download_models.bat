@@ -3,6 +3,7 @@ setlocal
 
 echo ================================================================
 echo  Lance Model Downloader
+echo  Author : Aleks aka pytraveler
 echo ================================================================
 echo.
 

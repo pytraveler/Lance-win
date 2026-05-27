@@ -155,6 +155,11 @@ def parse_args() -> argparse.Namespace:
         default=int(os.getenv("LANCE_QUEUE_SIZE", str(DEFAULT_QUEUE_SIZE))),
         help="Maximum number of queued Gradio requests.",
     )
+    parser.add_argument(
+        "--fp8",
+        action="store_true",
+        help="Convert model weights to fp8_e4m3fn to reduce VRAM usage (~50%% savings).",
+    )
     return parser.parse_args()
 
 def parse_gpu_ids(gpu_string: str) -> list[int]:

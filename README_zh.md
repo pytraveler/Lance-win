@@ -360,18 +360,18 @@ run_gradio.bat
 | `--server-port` | `7860` | 服务器端口。 |
 | `--gpus` | `0` | GPU ID 列表（逗号分隔），如 `0,1,2,3` 用于多 GPU 推理。 |
 | `--queue-size` | 自动 | Gradio 请求队列最大长度。 |
+| `--fp8` | `False` | 将模型权重转换为 fp8_e4m3fn 以减少显存占用（约节省 50%）。 |
 
 #### Windows 批处理脚本一览
 
 | 脚本 | 用途 |
 | --- | --- |
 | `setup_env.bat` | **完整环境配置。** 下载 `uv.exe`、创建 `.venv`、安装依赖、下载模型权重。 |
+| `setup_env_torch28cuda126.bat` | **替代环境配置。** 使用 PyTorch 2.8.0 + CUDA 12.6 和 `requirements_pytorch126.txt`。 |
 | `lance_download_models.bat` | **交互式模型下载器。** 选择要下载或更新的模型组件。 |
-| `download_lance_3b.bat` | **仅下载 `Lance_3B`（图像模型）。** |
+| `download_lance_3b.bat` | **交互式模型下载器。** 支持下载组合包或独立组件（`Lance_3B_Video`、`Lance_3B`、`Qwen2.5-VL-ViT`、`Wan2.2_VAE`）。 |
 | `inference_lance.bat` | **统一推理启动器。** 通过 `accelerate launch` 支持全部六种任务。 |
-| `run_gradio.bat` | **启动统一 Gradio demo。** 支持所有图像和视频任务（生成、编辑、理解）。 |
-| `run_gradio_image.bat` | *(旧版)* 仅启动图像 Gradio demo。 |
-| `run_gradio_video.bat` | *(旧版)* 仅启动视频 Gradio demo。 |
+| `run_gradio.bat` | **启动统一 Gradio demo。** 交互式启动器，支持普通模式、自定义参数模式和 `--fp8` 显存节省模式。 |
 
 ### 基准评测
 
